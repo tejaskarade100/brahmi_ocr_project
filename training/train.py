@@ -66,17 +66,21 @@ def load_model(model_name: str, processor):
     """
     model = VisionEncoderDecoderModel.from_pretrained(model_name)
 
-    # Configure special tokens for generation
+    # Configure special tokens for generation — on BOTH config and generation_config
     model.config.decoder_start_token_id = processor.tokenizer.cls_token_id
     model.config.pad_token_id = processor.tokenizer.pad_token_id
     model.config.eos_token_id = processor.tokenizer.sep_token_id
 
-    # Generation settings
-    model.config.max_length = 64
-    model.config.early_stopping = True
-    model.config.no_repeat_ngram_size = 3
-    model.config.length_penalty = 2.0
-    model.config.num_beams = 4
+    # Generation settings — set on generation_config (NOT model.config)
+    # so they are properly saved and loaded during inference
+    model.generation_config.decoder_start_token_id = processor.tokenizer.cls_token_id
+    model.generation_config.pad_token_id = processor.tokenizer.pad_token_id
+    model.generation_config.eos_token_id = processor.tokenizer.sep_token_id
+    model.generation_config.max_new_tokens = 64
+    model.generation_config.early_stopping = True
+    model.generation_config.no_repeat_ngram_size = 3
+    model.generation_config.length_penalty = 2.0
+    model.generation_config.num_beams = 4
 
     return model
 
@@ -197,16 +201,6 @@ def main():
         # Save best model
         if val_loss < best_val_loss:
             best_val_loss = val_loss
-
-            # Move generation params from config → generation_config
-            # (required by newer transformers to avoid ValueError on save)
-            gen_keys = ['max_length', 'early_stopping', 'num_beams',
-                        'length_penalty', 'no_repeat_ngram_size']
-            for key in gen_keys:
-                if hasattr(model.config, key):
-                    val = getattr(model.config, key)
-                    setattr(model.generation_config, key, val)
-                    delattr(model.config, key)
 
             model.save_pretrained(args.output_dir)
             processor.save_pretrained(args.output_dir)

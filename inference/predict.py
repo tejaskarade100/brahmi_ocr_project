@@ -40,6 +40,20 @@ def load_trained_model(model_dir: str, device: str = None):
     model = VisionEncoderDecoderModel.from_pretrained(model_dir)
     model.to(device)
     model.eval()
+
+    # Ensure generation config has required params
+    if not hasattr(model.generation_config, 'decoder_start_token_id') or \
+       model.generation_config.decoder_start_token_id is None:
+        model.generation_config.decoder_start_token_id = processor.tokenizer.cls_token_id
+
+    if not hasattr(model.generation_config, 'eos_token_id') or \
+       model.generation_config.eos_token_id is None:
+        model.generation_config.eos_token_id = processor.tokenizer.sep_token_id
+
+    if not hasattr(model.generation_config, 'pad_token_id') or \
+       model.generation_config.pad_token_id is None:
+        model.generation_config.pad_token_id = processor.tokenizer.pad_token_id
+
     return processor, model, device
 
 
@@ -67,9 +81,16 @@ def predict(image_path: str, processor, model, device: str,
     # Encode the image
     pixel_values = processor(image, return_tensors="pt").pixel_values.to(device)
 
-    # Generate prediction
+    # Generate prediction with explicit parameters
     with torch.no_grad():
-        generated_ids = model.generate(pixel_values)
+        generated_ids = model.generate(
+            pixel_values,
+            max_new_tokens=64,
+            num_beams=4,
+            early_stopping=True,
+            length_penalty=2.0,
+            no_repeat_ngram_size=3,
+        )
 
     # Decode tokens → text
     predicted_text = processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
@@ -87,13 +108,42 @@ def main():
                         help="Path to the saved model directory")
     parser.add_argument("--preprocess", action="store_true",
                         help="Apply image preprocessing before OCR")
+    parser.add_argument("--debug", action="store_true",
+                        help="Print debug info (raw token IDs, config)")
     args = parser.parse_args()
 
     print(f"Loading model from: {args.model_dir}")
     processor, model, device = load_trained_model(args.model_dir)
 
+    if args.debug:
+        print(f"  decoder_start_token_id: {model.generation_config.decoder_start_token_id}")
+        print(f"  eos_token_id: {model.generation_config.eos_token_id}")
+        print(f"  pad_token_id: {model.generation_config.pad_token_id}")
+        print(f"  vocab_size: {model.config.decoder.vocab_size}")
+
     print(f"Running OCR on: {args.image}")
-    text = predict(args.image, processor, model, device, args.preprocess)
+
+    if preprocess_flag := args.preprocess:
+        pass
+
+    # Manual prediction with debug
+    image = Image.open(args.image).convert("RGB")
+    pixel_values = processor(image, return_tensors="pt").pixel_values.to(device)
+
+    with torch.no_grad():
+        generated_ids = model.generate(
+            pixel_values,
+            max_new_tokens=64,
+            num_beams=4,
+            early_stopping=True,
+            length_penalty=2.0,
+            no_repeat_ngram_size=3,
+        )
+
+    if args.debug:
+        print(f"  Raw generated IDs: {generated_ids[0].tolist()}")
+
+    text = processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
 
     print(f"\n{'='*50}")
     print(f"Predicted Brahmi text:")
