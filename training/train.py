@@ -60,19 +60,55 @@ def parse_args():
 # Model setup
 # --------------------------------------------------------------------------
 
+def get_brahmi_characters() -> list:
+    """
+    Return all Brahmi Unicode characters used in our dataset.
+    Must match the character ranges in dataset/generate_synthetic.py.
+    """
+    chars = []
+    # Independent vowels  U+11005 – U+11012
+    chars += [chr(c) for c in range(0x11005, 0x11013)]
+    # Consonants  U+11013 – U+11037
+    chars += [chr(c) for c in range(0x11013, 0x11038)]
+    # Dependent vowel signs  U+11038 – U+11046
+    chars += [chr(c) for c in range(0x11038, 0x11047)]
+    # Digits  U+11052 – U+11069
+    chars += [chr(c) for c in range(0x11052, 0x1106A)]
+    # Space (used in phrases)
+    chars += [" "]
+    return chars
+
+
 def load_model(model_name: str, processor):
     """
-    Load TrOCR VisionEncoderDecoderModel and configure its generation params.
+    Load TrOCR VisionEncoderDecoderModel, add Brahmi tokens, and configure
+    generation params.
     """
     model = VisionEncoderDecoderModel.from_pretrained(model_name)
 
-    # Configure special tokens for generation — on BOTH config and generation_config
+    # ---- Add Brahmi characters to tokenizer vocabulary ----
+    # The default XLMRoBERTa tokenizer encodes Brahmi as <unk>.
+    # We add every Brahmi character as a new token so the model
+    # can learn to generate real Brahmi IDs instead of <unk>.
+    brahmi_chars = get_brahmi_characters()
+    new_tokens = [ch for ch in brahmi_chars
+                  if ch not in processor.tokenizer.get_vocab()]
+    if new_tokens:
+        num_added = processor.tokenizer.add_tokens(new_tokens)
+        print(f"  Added {num_added} Brahmi tokens to tokenizer "
+              f"(vocab size → {len(processor.tokenizer)})")
+
+    # Resize decoder embeddings to match new vocab size
+    model.decoder.resize_token_embeddings(len(processor.tokenizer))
+    model.config.decoder.vocab_size = len(processor.tokenizer)
+    model.config.vocab_size = len(processor.tokenizer)
+
+    # Configure special tokens — on BOTH config and generation_config
     model.config.decoder_start_token_id = processor.tokenizer.cls_token_id
     model.config.pad_token_id = processor.tokenizer.pad_token_id
     model.config.eos_token_id = processor.tokenizer.sep_token_id
 
-    # Generation settings — set on generation_config (NOT model.config)
-    # so they are properly saved and loaded during inference
+    # Generation settings — on generation_config so they are saved properly
     model.generation_config.decoder_start_token_id = processor.tokenizer.cls_token_id
     model.generation_config.pad_token_id = processor.tokenizer.pad_token_id
     model.generation_config.eos_token_id = processor.tokenizer.sep_token_id
@@ -83,6 +119,7 @@ def load_model(model_name: str, processor):
     model.generation_config.num_beams = 4
 
     return model
+
 
 
 # --------------------------------------------------------------------------
