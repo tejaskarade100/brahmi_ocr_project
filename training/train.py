@@ -3,10 +3,12 @@ training/train.py — TrOCR Fine-Tuning Script for Brahmi OCR
 =============================================================
 
 Fine-tune  microsoft/trocr-small-printed  on the synthetic Brahmi dataset
-produced by  dataset/generate_synthetic.py .
+produced by  dataset/generate_synthetic.py , optionally combined with
+folder-labelled datasets (Capstone, BrahmiGAN).
 
 USAGE:
-    python training/train.py                     # uses defaults
+    python training/train.py                     # uses defaults (synthetic only)
+    python training/train.py --extra_data path/to/RecognizerDataset  # + Capstone
     python training/train.py --epochs 5 --lr 3e-5 --batch_size 4
 
 DEFAULTS:
@@ -30,7 +32,7 @@ from transformers import (
 
 # Allow imports from project root
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from training.dataset_loader import BrahmiDataset
+from training.dataset_loader import BrahmiDataset, build_combined_dataset
 
 
 # --------------------------------------------------------------------------
@@ -53,6 +55,8 @@ def parse_args():
     p.add_argument("--lr", type=float, default=5e-5)
     p.add_argument("--max_label_length", type=int, default=64)
     p.add_argument("--seed", type=int, default=42)
+    p.add_argument("--extra_data", type=str, nargs="*", default=[],
+                    help="Paths to extra folder-labelled datasets (Capstone, BrahmiGAN)")
     return p.parse_args()
 
 
@@ -205,12 +209,21 @@ def main():
 
     # ---- Datasets ----
     print(f"Loading datasets from: {args.data_dir}")
-    train_ds = BrahmiDataset(args.data_dir, split="train",
-                             processor=processor,
-                             max_label_length=args.max_label_length)
-    val_ds = BrahmiDataset(args.data_dir, split="val",
-                           processor=processor,
-                           max_label_length=args.max_label_length)
+    if args.extra_data:
+        print(f"Extra datasets: {args.extra_data}")
+        train_ds = build_combined_dataset(
+            args.data_dir, args.extra_data, processor,
+            split="train", max_label_length=args.max_label_length)
+        val_ds = build_combined_dataset(
+            args.data_dir, args.extra_data, processor,
+            split="val", max_label_length=args.max_label_length)
+    else:
+        train_ds = BrahmiDataset(args.data_dir, split="train",
+                                 processor=processor,
+                                 max_label_length=args.max_label_length)
+        val_ds = BrahmiDataset(args.data_dir, split="val",
+                               processor=processor,
+                               max_label_length=args.max_label_length)
 
     train_loader = DataLoader(train_ds, batch_size=args.batch_size,
                               shuffle=True, collate_fn=BrahmiDataset.collate_fn)

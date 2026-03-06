@@ -1,0 +1,12 @@
+Option 1: Basic prediction
+Use this if the image is clear and clean (like the synthetic ones).
+
+powershell
+python inference/predict.py --image 1.jpg --model_dir model/brahmi_trocr
+
+
+Option 2: With Preprocessing (Recommended for real images)
+If 1.jpg is a photo of a real stone or paper, use this. It will clean up the noise and improve the accuracy significantly.
+
+powershell
+python inference/predict.py --image 1.jpg --model_dir model/brahmi_trocr --preprocess
