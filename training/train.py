@@ -103,7 +103,7 @@ def train_one_epoch(model, dataloader, optimizer, device, scaler=None):
         optimizer.zero_grad()
 
         if scaler is not None:
-            with torch.cuda.amp.autocast():
+            with torch.amp.autocast("cuda"):
                 outputs = model(pixel_values=pixel_values, labels=labels)
                 loss = outputs.loss
             scaler.scale(loss).backward()
@@ -181,7 +181,7 @@ def main():
 
     # ---- Optimizer ----
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr)
-    scaler = torch.cuda.amp.GradScaler() if use_fp16 else None
+    scaler = torch.amp.GradScaler("cuda") if use_fp16 else None
 
     # ---- Training loop ----
     best_val_loss = float("inf")
@@ -197,6 +197,17 @@ def main():
         # Save best model
         if val_loss < best_val_loss:
             best_val_loss = val_loss
+
+            # Move generation params from config → generation_config
+            # (required by newer transformers to avoid ValueError on save)
+            gen_keys = ['max_length', 'early_stopping', 'num_beams',
+                        'length_penalty', 'no_repeat_ngram_size']
+            for key in gen_keys:
+                if hasattr(model.config, key):
+                    val = getattr(model.config, key)
+                    setattr(model.generation_config, key, val)
+                    delattr(model.config, key)
+
             model.save_pretrained(args.output_dir)
             processor.save_pretrained(args.output_dir)
             print(f"  ➜ Best model saved to {args.output_dir}")
