@@ -1,0 +1,29 @@
+# ============================================================
+# Brahmi OCR Project — Python Dependencies
+# ============================================================
+# Install with:  pip install -r requirements.txt
+# ============================================================
+
+# --- Deep Learning ---
+torch
+torchvision
+
+# --- HuggingFace (TrOCR model & tokenizer) ---
+transformers
+datasets
+sentencepiece
+protobuf
+tiktoken
+
+# --- Image Processing ---
+opencv-python
+Pillow
+numpy
+
+# --- Utilities ---
+tqdm
+matplotlib
+
+# --- Backend (future web API) ---
+# fastapi
+# uvicorn

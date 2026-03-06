@@ -1,0 +1,13 @@
+# Brahmi OCR — Full Implementation
+
+## Tasks
+
+- [x] Write implementation plan and get user approval
+- [x] Implement [dataset/generate_synthetic.py](file:///c:/Users/tejas/OneDrive/Desktop/brahmi_ocr_project/dataset/generate_synthetic.py) (synthetic dataset generator)
+- [x] Implement [utils/preprocess.py](file:///c:/Users/tejas/OneDrive/Desktop/brahmi_ocr_project/utils/preprocess.py) (image preprocessing)
+- [x] Implement [training/dataset_loader.py](file:///c:/Users/tejas/OneDrive/Desktop/brahmi_ocr_project/training/dataset_loader.py) (PyTorch dataset)
+- [x] Implement [training/train.py](file:///c:/Users/tejas/OneDrive/Desktop/brahmi_ocr_project/training/train.py) (TrOCR fine-tuning)
+- [x] Implement [inference/predict.py](file:///c:/Users/tejas/OneDrive/Desktop/brahmi_ocr_project/inference/predict.py) (OCR prediction)
+- [x] Update [requirements.txt](file:///c:/Users/tejas/OneDrive/Desktop/brahmi_ocr_project/requirements.txt) with all needed deps
+- [x] Update [README.md](file:///c:/Users/tejas/OneDrive/Desktop/brahmi_ocr_project/README.md) with full usage instructions
+- [x] Verify: generate a small synthetic dataset to test the pipeline

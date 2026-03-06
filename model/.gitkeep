@@ -1,0 +1,3 @@
+# model/
+# This directory will store trained OCR model checkpoints.
+# Checkpoints are not included yet — they will be generated after training.

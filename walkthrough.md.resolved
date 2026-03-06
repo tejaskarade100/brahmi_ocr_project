@@ -1,0 +1,57 @@
+# Brahmi OCR — Implementation Walkthrough
+
+## What Was Built
+
+Complete pipeline from synthetic data to inference for Brahmi script OCR using TrOCR.
+
+### Files Changed
+
+| File | Action | Purpose |
+|------|--------|---------|
+| [generate_synthetic.py](file:///c:/Users/tejas/OneDrive/Desktop/brahmi_ocr_project/dataset/generate_synthetic.py) | NEW | Synthetic dataset generator (chars, words, phrases with augmentations) |
+| [preprocess.py](file:///c:/Users/tejas/OneDrive/Desktop/brahmi_ocr_project/utils/preprocess.py) | REWRITE | OpenCV preprocessing: denoise, threshold, CLAHE, resize |
+| [dataset_loader.py](file:///c:/Users/tejas/OneDrive/Desktop/brahmi_ocr_project/training/dataset_loader.py) | REWRITE | PyTorch Dataset with TrOCRProcessor integration |
+| [train.py](file:///c:/Users/tejas/OneDrive/Desktop/brahmi_ocr_project/training/train.py) | REWRITE | TrOCR fine-tuning with FP16, AdamW, best-model saving |
+| [predict.py](file:///c:/Users/tejas/OneDrive/Desktop/brahmi_ocr_project/inference/predict.py) | REWRITE | Model loading + inference CLI |
+| [requirements.txt](file:///c:/Users/tejas/OneDrive/Desktop/brahmi_ocr_project/requirements.txt) | UPDATE | Added sentencepiece, numpy, tqdm, matplotlib |
+| [README.md](file:///c:/Users/tejas/OneDrive/Desktop/brahmi_ocr_project/README.md) | UPDATE | Full usage docs with CLI options tables |
+
+## Verification
+
+### Synthetic dataset test run
+
+Generated 25 images with `--num_chars 10 --num_words 10 --num_phrases 5`:
+
+- ✅ **25 PNG images** created in `dataset/images/`
+- ✅ **labels.txt** has 25 tab-separated entries with Brahmi Unicode text
+- ✅ **Splits**: train (20) / val (2) / test (3) — matches 80/10/10 ratio
+- ✅ **Visual quality**: Brahmi characters rendered on textured backgrounds with rotation
+
+#### Sample generated image
+
+![Brahmi character on stone background with rotation](C:\Users\tejas\.gemini\antigravity\brain\7e9fb202-6558-40fb-a96c-4fc52cffc8e9\sample_brahmi.png)
+
+#### Sample labels.txt content
+
+```
+img_000001.png	𑀭𑁃
+img_000002.png	𑀓
+img_000003.png	𑀅
+img_000004.png	𑀛
+img_000005.png	𑀜
+```
+
+## Next Steps
+
+To run the full pipeline:
+
+```bash
+# 1. Generate full dataset (~20k images)
+python dataset/generate_synthetic.py
+
+# 2. Train the model (requires GPU for reasonable speed)
+python training/train.py --epochs 10 --batch_size 2
+
+# 3. Run inference
+python inference/predict.py --image dataset/images/img_000001.png --model_dir model/brahmi_trocr
+```

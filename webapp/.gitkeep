@@ -1,0 +1,4 @@
+# webapp/
+# This directory will hold the frontend web application
+# (React or similar) for the Brahmi OCR interface.
+# It will be set up in a later phase of the project.
