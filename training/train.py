@@ -47,9 +47,10 @@ def parse_args():
     p.add_argument("--model_name", type=str,
                     default="microsoft/trocr-small-printed",
                     help="HuggingFace model identifier")
-    p.add_argument("--output_dir", type=str,
-                    default=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "model", "brahmi_trocr"),
-                    help="Directory to save the fine-tuned model")
+    p.add_argument("--output_dir", type=str, default="model/brahmi_trocr",
+                        help="Directory to save the trained model.")
+    p.add_argument("--drive_save_path", type=str, default="",
+                        help="Optional Google Drive path to auto-save the best model at each epoch.")
     p.add_argument("--epochs", type=int, default=10)
     p.add_argument("--batch_size", type=int, default=2)
     p.add_argument("--lr", type=float, default=5e-5)
@@ -257,6 +258,16 @@ def main():
             model.save_pretrained(args.output_dir)
             processor.save_pretrained(args.output_dir)
             print(f"  ➜ Best model saved to {args.output_dir}")
+
+            if args.drive_save_path:
+                try:
+                    import shutil
+                    if os.path.exists(args.drive_save_path):
+                        shutil.rmtree(args.drive_save_path)
+                    shutil.copytree(args.output_dir, args.drive_save_path)
+                    print(f"  ➜ Auto-saved backup to {args.drive_save_path}!")
+                except Exception as e:
+                    print(f"  ➜ Warning: Could not auto-save to Drive: {e}")
 
     print(f"\nTraining complete. Best val loss: {best_val_loss:.4f}")
     print(f"Model saved at: {args.output_dir}")
