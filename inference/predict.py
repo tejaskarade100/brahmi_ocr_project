@@ -79,18 +79,48 @@ def predict(image_path: str, processor, model, device: str,
     else:
         image = Image.open(image_path).convert("RGB")
 
-    # Encode the image
+    import math
+    width, height = image.size
+    aspect_ratio = width / height
+
+    # If the image is a wide phrase, chunk it horizontally to prevent 384x384 squishing!
+    if aspect_ratio > 3.0:
+        num_chunks = int(math.ceil(aspect_ratio / 2.0))  # Each chunk is twice as wide as it is tall
+        chunk_width = width // num_chunks
+        predicted_text = ""
+        
+        for i in range(num_chunks):
+            left = i * chunk_width
+            right = min(left + chunk_width, width)
+            # Add a small overlap
+            if i > 0: left -= int(height * 0.2)
+            if i < num_chunks - 1: right += int(height * 0.2)
+                
+            chunk = image.crop((left, 0, right, height))
+            pixel_values = processor(chunk, return_tensors="pt").pixel_values.to(device)
+            
+            with torch.no_grad():
+                generated_ids = model.generate(
+                    pixel_values,
+                    max_new_tokens=256,
+                    num_beams=1,   # Greedy decoding to stop repeating hallucinations
+                    length_penalty=1.0,
+                )
+            piece = processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
+            predicted_text += piece + " "
+            
+        return predicted_text.strip()
+    
+    # Otherwise, it is a normal short word or character
     pixel_values = processor(image, return_tensors="pt").pixel_values.to(device)
 
-    # Generate prediction with explicit parameters
+    # Generate prediction with simpler greedy parameters
     with torch.no_grad():
         generated_ids = model.generate(
             pixel_values,
-            max_new_tokens=64,
-            num_beams=4,
-            early_stopping=True,
-            length_penalty=2.0,
-            no_repeat_ngram_size=3,
+            max_new_tokens=256,
+            num_beams=1,
+            length_penalty=1.0,
         )
 
     # Decode tokens → text

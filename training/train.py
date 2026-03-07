@@ -54,7 +54,7 @@ def parse_args():
     p.add_argument("--epochs", type=int, default=10)
     p.add_argument("--batch_size", type=int, default=2)
     p.add_argument("--lr", type=float, default=5e-5)
-    p.add_argument("--max_label_length", type=int, default=64)
+    p.add_argument("--max_label_length", type=int, default=128)
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--extra_data", type=str, nargs="*", default=[],
                     help="Paths to extra folder-labelled datasets (Capstone, BrahmiGAN)")
@@ -169,26 +169,61 @@ def train_one_epoch(model, dataloader, optimizer, device, scaler=None):
     return total_loss / max(num_batches, 1)
 
 
-def evaluate(model, dataloader, device):
+def compute_cer(preds, labels):
+    import editdistance
+    total_edits = 0
+    total_chars = 0
+    for p, l in zip(preds, labels):
+        total_edits += editdistance.eval(p, l)
+        total_chars += len(l)
+    return total_edits / max(total_chars, 1)
+
+def evaluate(model, dataloader, device, processor):
     """
     Evaluate the model on a validation dataloader.
-
-    Returns:
-        Average validation loss.
+    Returns: Average validation loss, and estimated CER (sampled).
     """
     model.eval()
     total_loss = 0.0
     num_batches = 0
+    
+    all_preds = []
+    all_labels = []
 
     with torch.no_grad():
-        for batch in dataloader:
+        for i, batch in enumerate(dataloader):
             pixel_values = batch["pixel_values"].to(device)
             labels = batch["labels"].to(device)
+            
             outputs = model(pixel_values=pixel_values, labels=labels)
             total_loss += outputs.loss.item()
+            
+            # Generate predictions for CER on a subset (e.g. first 50 batches) to save time
+            if i < 50:
+                generated_ids = model.generate(
+                    pixel_values,
+                    max_new_tokens=128,
+                    num_beams=1,
+                )
+                preds_str = processor.batch_decode(generated_ids, skip_special_tokens=True)
+                
+                # Decode original labels
+                labels_clone = labels.clone()
+                labels_clone[labels_clone == -100] = processor.tokenizer.pad_token_id
+                labels_str = processor.batch_decode(labels_clone, skip_special_tokens=True)
+                
+                all_preds.extend(preds_str)
+                all_labels.extend(labels_str)
+                
             num_batches += 1
 
-    return total_loss / max(num_batches, 1)
+    try:
+        import editdistance
+        cer = compute_cer(all_preds, all_labels)
+    except ImportError:
+        cer = -1.0  # Just return -1 if editdistance is not installed
+
+    return total_loss / max(num_batches, 1), cer
 
 
 # --------------------------------------------------------------------------
@@ -246,10 +281,11 @@ def main():
 
     for epoch in range(1, args.epochs + 1):
         train_loss = train_one_epoch(model, train_loader, optimizer, device, scaler)
-        val_loss = evaluate(model, val_loader, device)
+        val_loss, val_cer = evaluate(model, val_loader, device, processor)
 
+        cer_str = f"{val_cer:.4f}" if val_cer >= 0 else "N/A (pip install editdistance)"
         print(f"Epoch {epoch}/{args.epochs}  |  "
-              f"Train Loss: {train_loss:.4f}  |  Val Loss: {val_loss:.4f}")
+              f"Train Loss: {train_loss:.4f}  |  Val Loss: {val_loss:.4f}  |  Val CER: {cer_str}")
 
         # Save best model
         if val_loss < best_val_loss:

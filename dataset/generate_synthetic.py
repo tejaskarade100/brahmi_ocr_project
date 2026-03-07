@@ -66,16 +66,20 @@ def generate_word(min_len: int = 2, max_len: int = 6) -> str:
     return "".join(_random_char() for _ in range(length))
 
 
-def generate_phrase(min_len: int = 5, max_len: int = 15) -> str:
-    """Generate a short Brahmi phrase (space-separated words)."""
+def generate_phrase(min_len: int = 20, max_len: int = 80) -> str:
+    """Generate a long Brahmi phrase (space-separated words)."""
     target_chars = random.randint(min_len, max_len)
     words = []
     total = 0
     while total < target_chars:
-        w = generate_word(2, 4)
+        # Mix of short and mid-length words
+        w = generate_word(2, random.choices([4, 6, 8], weights=[0.5, 0.3, 0.2])[0])
         words.append(w)
         total += len(w)
-    return " ".join(words)
+    
+    # 20% chance to have double spaces or erratic spacing to simulate real text
+    spacing = " " if random.random() < 0.8 else "  "
+    return spacing.join(words)
 
 
 # ---------------------------------------------------------------------------
