@@ -130,8 +130,9 @@ class FolderLabeledDataset(Dataset):
         from dataset.phonetic_mapping3 import _KAGGLE_MAPPING as PHONETIC_TO_BRAHMI3
 
         # Check which dataset this is based on path keywords
-        is_brahmigan = "BrahmiGAN" in root_dir
-        is_kaggle = "archive" in root_dir or "train" in root_dir and not is_brahmigan
+        root_lower = root_dir.lower()
+        is_brahmigan = "brahmigan" in root_lower
+        is_kaggle = "archive" in root_lower or "train" in root_lower or "kaggle" in root_lower and not is_brahmigan
 
         # ---- Collect all (image_path, unicode_label) pairs ----
         all_samples = []
