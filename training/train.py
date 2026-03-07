@@ -94,9 +94,11 @@ def load_model(model_name: str, processor):
     # The default XLMRoBERTa tokenizer encodes Brahmi as <unk>.
     # We add every Brahmi character as a new token so the model
     # can learn to generate real Brahmi IDs instead of <unk>.
+    from transformers import AddedToken
+
     brahmi_chars = get_brahmi_characters()
-    new_tokens = [ch for ch in brahmi_chars
-                  if ch not in processor.tokenizer.get_vocab()]
+    existing_vocab = processor.tokenizer.get_vocab()
+    new_tokens = [AddedToken(ch, normalized=False) for ch in brahmi_chars if ch not in existing_vocab]
     if new_tokens:
         num_added = processor.tokenizer.add_tokens(new_tokens)
         print(f"  Added {num_added} Brahmi tokens to tokenizer "
