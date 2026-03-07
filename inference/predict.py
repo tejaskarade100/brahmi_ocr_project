@@ -39,7 +39,7 @@ def load_trained_model(model_dir: str, device: str = None):
     if device is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    processor = TrOCRProcessor.from_pretrained(model_dir)
+    processor = TrOCRProcessor.from_pretrained(model_dir, use_fast=False)
     model = VisionEncoderDecoderModel.from_pretrained(model_dir)
     model.to(device)
     model.eval()

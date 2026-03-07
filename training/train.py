@@ -203,7 +203,7 @@ def main():
 
     # ---- Processor & model ----
     print(f"Loading processor & model: {args.model_name}")
-    processor = TrOCRProcessor.from_pretrained(args.model_name)
+    processor = TrOCRProcessor.from_pretrained(args.model_name, use_fast=False)
     model = load_model(args.model_name, processor)
     model.to(device)
 
