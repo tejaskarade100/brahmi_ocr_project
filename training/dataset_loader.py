@@ -129,10 +129,9 @@ class FolderLabeledDataset(Dataset):
         from dataset.phonetic_mapping2 import _BRAHMIGAN_MAPPING as PHONETIC_TO_BRAHMI2
         from dataset.phonetic_mapping3 import _KAGGLE_MAPPING as PHONETIC_TO_BRAHMI3
 
-        # Check which dataset this is based on path keywords
+        # Check which dataset this is based on path patterns.
         root_lower = root_dir.lower()
         is_brahmigan = "brahmigan" in root_lower
-        is_kaggle = "archive" in root_lower or "train" in root_lower or "kaggle" in root_lower and not is_brahmigan
 
         # ---- Collect all (image_path, unicode_label) pairs ----
         all_samples = []
@@ -141,10 +140,18 @@ class FolderLabeledDataset(Dataset):
             self.samples = []
             return
 
-        for folder_name in sorted(os.listdir(root_dir)):
+        folder_names = [
+            name for name in os.listdir(root_dir)
+            if os.path.isdir(os.path.join(root_dir, name))
+        ]
+        numeric_folder_count = sum(1 for name in folder_names if name.isdigit())
+        looks_numeric_classes = len(folder_names) > 0 and (
+            numeric_folder_count / len(folder_names) >= 0.8
+        )
+        is_kaggle = (("archive" in root_lower) or ("kaggle" in root_lower) or looks_numeric_classes) and not is_brahmigan
+
+        for folder_name in sorted(folder_names):
             folder_path = os.path.join(root_dir, folder_name)
-            if not os.path.isdir(folder_path):
-                continue
 
             # Map folder name to Brahmi Unicode using appropriate mapping
             if is_brahmigan:

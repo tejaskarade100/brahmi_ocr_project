@@ -61,6 +61,10 @@ def parse_args():
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--extra_data", type=str, nargs="*", default=[],
                     help="Paths to extra folder-labelled datasets (Capstone, BrahmiGAN)")
+    p.add_argument("--resume", action="store_true",
+                    help="Resume training from last checkpoint if available.")
+    p.add_argument("--resume_checkpoint", type=str, default="",
+                    help="Optional explicit path to a training-state checkpoint (.pt).")
     return p.parse_args()
 
 
@@ -279,6 +283,80 @@ def evaluate(
     return total_loss / max(num_batches, 1), cer
 
 
+def resolve_resume_checkpoint_path(args) -> str:
+    """
+    Return the checkpoint path used for resume/load of training state.
+    """
+    if args.resume_checkpoint:
+        return args.resume_checkpoint
+    return os.path.join(args.output_dir, "last_checkpoint.pt")
+
+
+def maybe_resume_training(model, optimizer, scaler, device, checkpoint_path: str, enabled: bool):
+    """
+    Optionally resume model + optimizer + scaler states and return
+    (start_epoch, best_val_cer, best_val_loss).
+    """
+    start_epoch = 1
+    best_val_cer = float("inf")
+    best_val_loss = float("inf")
+
+    if not enabled:
+        return start_epoch, best_val_cer, best_val_loss
+
+    if not os.path.isfile(checkpoint_path):
+        print(f"Resume requested, but checkpoint not found: {checkpoint_path}")
+        print("Starting training from scratch.")
+        return start_epoch, best_val_cer, best_val_loss
+
+    print(f"Resuming training from: {checkpoint_path}")
+    ckpt = torch.load(checkpoint_path, map_location=device)
+
+    model.load_state_dict(ckpt["model_state_dict"])
+    if "optimizer_state_dict" in ckpt:
+        optimizer.load_state_dict(ckpt["optimizer_state_dict"])
+    if scaler is not None and ckpt.get("scaler_state_dict") is not None:
+        scaler.load_state_dict(ckpt["scaler_state_dict"])
+
+    start_epoch = int(ckpt.get("epoch", 0)) + 1
+    best_val_cer = float(ckpt.get("best_val_cer", float("inf")))
+    best_val_loss = float(ckpt.get("best_val_loss", float("inf")))
+
+    if "torch_rng_state" in ckpt:
+        torch.set_rng_state(ckpt["torch_rng_state"])
+    if device.type == "cuda" and "cuda_rng_state_all" in ckpt:
+        torch.cuda.set_rng_state_all(ckpt["cuda_rng_state_all"])
+
+    print(f"  ➜ Resume state loaded (next epoch: {start_epoch})")
+    return start_epoch, best_val_cer, best_val_loss
+
+
+def save_training_state(
+    checkpoint_path: str,
+    model,
+    optimizer,
+    scaler,
+    epoch: int,
+    best_val_cer: float,
+    best_val_loss: float,
+):
+    """
+    Save latest full training state for reliable resume after interruptions.
+    """
+    state = {
+        "epoch": epoch,
+        "best_val_cer": best_val_cer,
+        "best_val_loss": best_val_loss,
+        "model_state_dict": model.state_dict(),
+        "optimizer_state_dict": optimizer.state_dict(),
+        "scaler_state_dict": scaler.state_dict() if scaler is not None else None,
+        "torch_rng_state": torch.get_rng_state(),
+    }
+    if torch.cuda.is_available():
+        state["cuda_rng_state_all"] = torch.cuda.get_rng_state_all()
+    torch.save(state, checkpoint_path)
+
+
 # --------------------------------------------------------------------------
 # Main
 # --------------------------------------------------------------------------
@@ -339,12 +417,30 @@ def main():
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr)
     scaler = torch.amp.GradScaler("cuda") if use_fp16 else None
 
-    # ---- Training loop ----
-    best_val_cer = float("inf")
-    best_val_loss = float("inf")
     os.makedirs(args.output_dir, exist_ok=True)
+    last_ckpt_path = resolve_resume_checkpoint_path(args)
+    last_ckpt_dir = os.path.dirname(last_ckpt_path)
+    if last_ckpt_dir:
+        os.makedirs(last_ckpt_dir, exist_ok=True)
 
-    for epoch in range(1, args.epochs + 1):
+    # ---- Training loop ----
+    start_epoch, best_val_cer, best_val_loss = maybe_resume_training(
+        model=model,
+        optimizer=optimizer,
+        scaler=scaler,
+        device=device,
+        checkpoint_path=last_ckpt_path,
+        enabled=args.resume,
+    )
+
+    if start_epoch > args.epochs:
+        print(
+            f"Checkpoint already at epoch {start_epoch - 1}, "
+            f"which meets/exceeds requested --epochs {args.epochs}. Nothing to train."
+        )
+        return
+
+    for epoch in range(start_epoch, args.epochs + 1):
         train_loss = train_one_epoch(model, train_loader, optimizer, device, scaler)
         val_loss, val_cer = evaluate(
             model, val_loader, device, processor,
@@ -384,9 +480,21 @@ def main():
                 except Exception as e:
                     print(f"  ➜ Warning: Could not auto-save to Drive: {e}")
 
+        save_training_state(
+            checkpoint_path=last_ckpt_path,
+            model=model,
+            optimizer=optimizer,
+            scaler=scaler,
+            epoch=epoch,
+            best_val_cer=best_val_cer,
+            best_val_loss=best_val_loss,
+        )
+        print(f"  ➜ Latest checkpoint saved to {last_ckpt_path}")
+
     cer_summary = f"{best_val_cer:.4f}" if best_val_cer != float("inf") else "N/A"
     print(f"\nTraining complete. Best val CER: {cer_summary} | Best val loss: {best_val_loss:.4f}")
     print(f"Model saved at: {args.output_dir}")
+    print(f"Latest resume checkpoint: {last_ckpt_path}")
 
 
 if __name__ == "__main__":
