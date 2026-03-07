@@ -66,8 +66,8 @@ def generate_word(min_len: int = 2, max_len: int = 6) -> str:
     return "".join(_random_char() for _ in range(length))
 
 
-def generate_phrase(min_len: int = 20, max_len: int = 80) -> str:
-    """Generate a long Brahmi phrase (space-separated words)."""
+def generate_phrase(min_len: int = 12, max_len: int = 25) -> str:
+    """Generate a Brahmi phrase (space-separated words) that fits safely inside a 384x384 training canvas."""
     target_chars = random.randint(min_len, max_len)
     words = []
     total = 0

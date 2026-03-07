@@ -23,6 +23,7 @@ numpy
 # --- Utilities ---
 tqdm
 matplotlib
+editdistance
 
 # --- Backend (future web API) ---
 # fastapi

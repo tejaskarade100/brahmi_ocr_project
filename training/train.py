@@ -276,6 +276,7 @@ def main():
     scaler = torch.amp.GradScaler("cuda") if use_fp16 else None
 
     # ---- Training loop ----
+    best_val_cer = float("inf")
     best_val_loss = float("inf")
     os.makedirs(args.output_dir, exist_ok=True)
 
@@ -287,9 +288,19 @@ def main():
         print(f"Epoch {epoch}/{args.epochs}  |  "
               f"Train Loss: {train_loss:.4f}  |  Val Loss: {val_loss:.4f}  |  Val CER: {cer_str}")
 
-        # Save best model
-        if val_loss < best_val_loss:
-            best_val_loss = val_loss
+        # Save best model primarily by CER (or val_loss as fallback)
+        improved = False
+        if val_cer >= 0:
+            if val_cer < best_val_cer:
+                best_val_cer = val_cer
+                best_val_loss = val_loss
+                improved = True
+        else:
+            if val_loss < best_val_loss:
+                best_val_loss = val_loss
+                improved = True
+
+        if improved:
 
             model.save_pretrained(args.output_dir)
             processor.save_pretrained(args.output_dir)
