@@ -23,11 +23,10 @@ import os
 import sys
 import argparse
 import torch
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, WeightedRandomSampler, ConcatDataset
 from transformers import (
     TrOCRProcessor,
     VisionEncoderDecoderModel,
-    default_data_collator,
 )
 
 # Allow imports from project root
@@ -55,6 +54,10 @@ def parse_args():
     p.add_argument("--batch_size", type=int, default=2)
     p.add_argument("--lr", type=float, default=5e-5)
     p.add_argument("--max_label_length", type=int, default=128)
+    p.add_argument("--cer_eval_batches", type=int, default=0,
+                    help="How many val batches to decode for CER (0 = full val set).")
+    p.add_argument("--disable_length_balance", action="store_true",
+                    help="Disable length-aware weighted sampling on combined datasets.")
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--extra_data", type=str, nargs="*", default=[],
                     help="Paths to extra folder-labelled datasets (Capstone, BrahmiGAN)")
@@ -84,7 +87,7 @@ def get_brahmi_characters() -> list:
     return chars
 
 
-def load_model(model_name: str, processor):
+def load_model(model_name: str, processor, max_gen_tokens: int = 128):
     """
     Load TrOCR VisionEncoderDecoderModel, add Brahmi tokens, and configure
     generation params.
@@ -119,11 +122,11 @@ def load_model(model_name: str, processor):
     model.generation_config.decoder_start_token_id = processor.tokenizer.cls_token_id
     model.generation_config.pad_token_id = processor.tokenizer.pad_token_id
     model.generation_config.eos_token_id = processor.tokenizer.sep_token_id
-    model.generation_config.max_new_tokens = 64
-    model.generation_config.early_stopping = True
-    model.generation_config.no_repeat_ngram_size = 3
-    model.generation_config.length_penalty = 2.0
-    model.generation_config.num_beams = 4
+    model.generation_config.max_new_tokens = max_gen_tokens
+    model.generation_config.early_stopping = False
+    model.generation_config.no_repeat_ngram_size = 0
+    model.generation_config.length_penalty = 1.0
+    model.generation_config.num_beams = 1
 
     return model
 
@@ -169,6 +172,49 @@ def train_one_epoch(model, dataloader, optimizer, device, scaler=None):
     return total_loss / max(num_batches, 1)
 
 
+def build_length_balanced_sampler(dataset):
+    """
+    Build a WeightedRandomSampler that upsamples longer labels and phrases.
+    This reduces character-only dominance when training on mixed datasets.
+    """
+    if not isinstance(dataset, ConcatDataset):
+        return None
+
+    sample_weights = []
+    for sub_ds in dataset.datasets:
+        if not hasattr(sub_ds, "samples"):
+            sample_weights.extend([1.0] * len(sub_ds))
+            continue
+
+        for _, text in sub_ds.samples:
+            seq = str(text)
+            clean_len = len(seq.replace(" ", ""))
+
+            if clean_len <= 2:
+                weight = 0.35
+            elif clean_len <= 5:
+                weight = 0.75
+            elif clean_len <= 10:
+                weight = 1.30
+            else:
+                weight = 2.00
+
+            if " " in seq:
+                weight *= 1.20
+
+            sample_weights.append(weight)
+
+    if len(sample_weights) != len(dataset):
+        print("  ⚠ Length-balance sampler skipped (weight/sample mismatch).")
+        return None
+
+    return WeightedRandomSampler(
+        weights=torch.as_tensor(sample_weights, dtype=torch.double),
+        num_samples=len(sample_weights),
+        replacement=True,
+    )
+
+
 def compute_cer(preds, labels):
     import editdistance
     total_edits = 0
@@ -178,7 +224,14 @@ def compute_cer(preds, labels):
         total_chars += len(l)
     return total_edits / max(total_chars, 1)
 
-def evaluate(model, dataloader, device, processor):
+def evaluate(
+    model,
+    dataloader,
+    device,
+    processor,
+    cer_eval_batches: int = 0,
+    max_new_tokens: int = 128,
+):
     """
     Evaluate the model on a validation dataloader.
     Returns: Average validation loss, and estimated CER (sampled).
@@ -198,11 +251,11 @@ def evaluate(model, dataloader, device, processor):
             outputs = model(pixel_values=pixel_values, labels=labels)
             total_loss += outputs.loss.item()
             
-            # Generate predictions for CER on a subset (e.g. first 50 batches) to save time
-            if i < 50:
+            # Decode either full validation set or the requested subset.
+            if cer_eval_batches <= 0 or i < cer_eval_batches:
                 generated_ids = model.generate(
                     pixel_values,
-                    max_new_tokens=128,
+                    max_new_tokens=max_new_tokens,
                     num_beams=1,
                 )
                 preds_str = processor.batch_decode(generated_ids, skip_special_tokens=True)
@@ -242,7 +295,7 @@ def main():
     # ---- Processor & model ----
     print(f"Loading processor & model: {args.model_name}")
     processor = TrOCRProcessor.from_pretrained(args.model_name, use_fast=False)
-    model = load_model(args.model_name, processor)
+    model = load_model(args.model_name, processor, max_gen_tokens=args.max_label_length)
     model.to(device)
 
     # ---- Datasets ----
@@ -263,8 +316,19 @@ def main():
                                processor=processor,
                                max_label_length=args.max_label_length)
 
-    train_loader = DataLoader(train_ds, batch_size=args.batch_size,
-                              shuffle=True, collate_fn=BrahmiDataset.collate_fn)
+    train_sampler = None
+    if not args.disable_length_balance:
+        train_sampler = build_length_balanced_sampler(train_ds)
+        if train_sampler is not None:
+            print("Using length-balanced sampler for training.")
+
+    train_loader = DataLoader(
+        train_ds,
+        batch_size=args.batch_size,
+        shuffle=train_sampler is None,
+        sampler=train_sampler,
+        collate_fn=BrahmiDataset.collate_fn,
+    )
     val_loader = DataLoader(val_ds, batch_size=args.batch_size,
                             shuffle=False, collate_fn=BrahmiDataset.collate_fn)
 
@@ -282,7 +346,11 @@ def main():
 
     for epoch in range(1, args.epochs + 1):
         train_loss = train_one_epoch(model, train_loader, optimizer, device, scaler)
-        val_loss, val_cer = evaluate(model, val_loader, device, processor)
+        val_loss, val_cer = evaluate(
+            model, val_loader, device, processor,
+            cer_eval_batches=args.cer_eval_batches,
+            max_new_tokens=args.max_label_length,
+        )
 
         cer_str = f"{val_cer:.4f}" if val_cer >= 0 else "N/A (pip install editdistance)"
         print(f"Epoch {epoch}/{args.epochs}  |  "
@@ -291,7 +359,7 @@ def main():
         # Save best model primarily by CER (or val_loss as fallback)
         improved = False
         if val_cer >= 0:
-            if val_cer < best_val_cer:
+            if (val_cer < best_val_cer) or (val_cer == best_val_cer and val_loss < best_val_loss):
                 best_val_cer = val_cer
                 best_val_loss = val_loss
                 improved = True
@@ -316,7 +384,8 @@ def main():
                 except Exception as e:
                     print(f"  ➜ Warning: Could not auto-save to Drive: {e}")
 
-    print(f"\nTraining complete. Best val loss: {best_val_loss:.4f}")
+    cer_summary = f"{best_val_cer:.4f}" if best_val_cer != float("inf") else "N/A"
+    print(f"\nTraining complete. Best val CER: {cer_summary} | Best val loss: {best_val_loss:.4f}")
     print(f"Model saved at: {args.output_dir}")
 
 

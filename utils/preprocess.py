@@ -16,6 +16,7 @@ DEPENDENCIES:
 import cv2
 import numpy as np
 from PIL import Image
+from typing import Optional
 
 
 def load_image(path: str) -> np.ndarray:
@@ -99,6 +100,21 @@ def apply_threshold(image: np.ndarray, method: str = "adaptive") -> np.ndarray:
         raise ValueError(f"Unknown thresholding method: {method}")
 
 
+def binarize_image(image: np.ndarray, method: str = "adaptive") -> np.ndarray:
+    """
+    Convenience wrapper: grayscale conversion + thresholding.
+
+    Args:
+        image:  BGR or grayscale image.
+        method: Threshold method passed to apply_threshold().
+
+    Returns:
+        Binarized single-channel image.
+    """
+    gray = to_grayscale(image)
+    return apply_threshold(gray, method=method)
+
+
 def enhance_contrast(image: np.ndarray, clip_limit: float = 2.0,
                      grid_size: tuple = (8, 8)) -> np.ndarray:
     """
@@ -113,6 +129,8 @@ def enhance_contrast(image: np.ndarray, clip_limit: float = 2.0,
     Returns:
         Contrast-enhanced image.
     """
+    if len(image.shape) == 3:
+        image = to_grayscale(image)
     clahe = cv2.createCLAHE(clipLimit=clip_limit, tileGridSize=grid_size)
     return clahe.apply(image)
 
@@ -150,6 +168,38 @@ def resize_image(image: np.ndarray,
     return canvas
 
 
+def preprocess_array(
+    image: np.ndarray,
+    target_size: tuple = (384, 384),
+    noise_method: str = "gaussian",
+    threshold_method: Optional[str] = None,
+) -> np.ndarray:
+    """
+    Preprocess an in-memory image and return RGB array ready for PIL conversion.
+
+    Args:
+        image:            Input image (BGR or grayscale).
+        target_size:      Output size (width, height).
+        noise_method:     Denoising method for remove_noise().
+        threshold_method: Optional threshold mode; if None, keep grayscale.
+
+    Returns:
+        RGB numpy array.
+    """
+    gray = to_grayscale(image)
+    denoised = remove_noise(gray, method=noise_method)
+    enhanced = enhance_contrast(denoised)
+
+    processed = enhanced
+    if threshold_method:
+        processed = apply_threshold(enhanced, method=threshold_method)
+
+    resized = resize_image(processed, target_size)
+    if len(resized.shape) == 2:
+        return cv2.cvtColor(resized, cv2.COLOR_GRAY2RGB)
+    return cv2.cvtColor(resized, cv2.COLOR_BGR2RGB)
+
+
 def preprocess_image(path: str, target_size: tuple = (384, 384)) -> Image.Image:
     """
     Full preprocessing pipeline.
@@ -169,11 +219,10 @@ def preprocess_image(path: str, target_size: tuple = (384, 384)) -> Image.Image:
         Preprocessed image as a PIL RGB Image, ready for TrOCR processor.
     """
     img = load_image(path)
-    gray = to_grayscale(img)
-    denoised = remove_noise(gray, method="gaussian")
-    enhanced = enhance_contrast(denoised)
-    resized = resize_image(enhanced, target_size)
-
-    # Convert grayscale back to RGB for TrOCR processor compatibility
-    rgb = cv2.cvtColor(resized, cv2.COLOR_GRAY2RGB)
+    rgb = preprocess_array(
+        img,
+        target_size=target_size,
+        noise_method="gaussian",
+        threshold_method=None,
+    )
     return Image.fromarray(rgb)

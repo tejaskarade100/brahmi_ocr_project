@@ -73,83 +73,88 @@ def predict(image_path: str, processor, model, device: str,
     Returns:
         Predicted Brahmi Unicode text.
     """
-    import math
     import cv2
     import numpy as np
-    
-    # Load raw image first before preprocessing squishes it
-    full_image = Image.open(image_path).convert("RGB")
-    width, height = full_image.size
-    aspect_ratio = width / height
 
-    def merge_strings(s1, s2):
-        if not s1: return s2
-        if not s2: return s1
-        # Check overlaps from 6 chars down to 1 (accounts for chunk boundary overlaps)
-        max_overlap = min(len(s1), len(s2), 6)
-        for i in range(max_overlap, 0, -1):
+    def upscale_small_image(image: Image.Image, min_short_side: int = 128) -> Image.Image:
+        w, h = image.size
+        short_side = min(w, h)
+        if short_side >= min_short_side:
+            return image
+        scale = min_short_side / max(short_side, 1)
+        new_w = max(int(round(w * scale)), 1)
+        new_h = max(int(round(h * scale)), 1)
+        return image.resize((new_w, new_h), resample=Image.BICUBIC)
+
+    def merge_strings(s1: str, s2: str, max_overlap: int = 12) -> str:
+        s1 = s1.strip()
+        s2 = s2.strip()
+        if not s1:
+            return s2
+        if not s2:
+            return s1
+
+        overlap = min(len(s1), len(s2), max_overlap)
+        for i in range(overlap, 0, -1):
             if s1[-i:] == s2[:i]:
-                return s1 + s2[i:]
-        return s1 + " " + s2
+                return (s1 + s2[i:]).strip()
+        return f"{s1} {s2}".strip()
 
-    # If the image is a wide phrase, chunk it horizontally to prevent 384x384 squishing!
-    if aspect_ratio > 3.0:
-        num_chunks = int(math.ceil(aspect_ratio / 2.0))  # Each chunk is twice as wide as it is tall
-        chunk_width = width // num_chunks
-        predicted_text = ""
-        
-        for i in range(num_chunks):
-            left = i * chunk_width
-            right = min(left + chunk_width, width)
-            # Add a small overlap
-            if i > 0: left = max(left - int(height * 0.2), 0)
-            if i < num_chunks - 1: right = min(right + int(height * 0.2), width)
-                
+    def prepare_image(image: Image.Image) -> Image.Image:
+        image = upscale_small_image(image)
+        image_bgr = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
+        if preprocess:
+            from utils.preprocess import preprocess_array
+            image_rgb = preprocess_array(
+                image_bgr,
+                target_size=(384, 384),
+                noise_method="gaussian",
+                threshold_method="adaptive",
+            )
+        else:
+            from utils.preprocess import resize_image
+            image_bgr = resize_image(image_bgr, target_size=(384, 384))
+            image_rgb = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
+        return Image.fromarray(image_rgb)
+
+    def decode_image(image: Image.Image) -> str:
+        pixel_values = processor(image, return_tensors="pt").pixel_values.to(device)
+        with torch.no_grad():
+            generated_ids = model.generate(
+                pixel_values,
+                max_new_tokens=256,
+                num_beams=1,
+                length_penalty=1.0,
+            )
+        return processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
+
+    # Load raw image first; chunking must happen before any 384x384 resize.
+    full_image = Image.open(image_path).convert("RGB")
+    full_image = upscale_small_image(full_image)
+    width, height = full_image.size
+    aspect_ratio = width / max(height, 1)
+
+    # Chunk wide images to avoid destructive horizontal squishing.
+    if aspect_ratio >= 2.2:
+        chunk_span = max(int(height * 2.2), height)
+        stride = max(int(height * 1.8), 1)  # overlap preserves boundary glyphs
+        left = 0
+        merged_text = ""
+
+        while left < width:
+            right = min(left + chunk_span, width)
             chunk = full_image.crop((left, 0, right, height))
-            
-            if preprocess:
-                from utils.preprocess import binarize_image, enhance_contrast, resize_image
-                chunk_cv = cv2.cvtColor(np.array(chunk), cv2.COLOR_RGB2BGR)
-                chunk_cv = binarize_image(chunk_cv, method='adaptive')
-                chunk_cv = enhance_contrast(chunk_cv)
-                chunk_cv = resize_image(chunk_cv, target_size=(384, 384))
-                chunk = Image.fromarray(cv2.cvtColor(chunk_cv, cv2.COLOR_BGR2RGB))
-                
-            pixel_values = processor(chunk, return_tensors="pt").pixel_values.to(device)
-            
-            with torch.no_grad():
-                generated_ids = model.generate(
-                    pixel_values,
-                    max_new_tokens=256,
-                    num_beams=1,   # Greedy decoding to stop repeating hallucinations
-                    length_penalty=1.0,
-                )
-            piece = processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
-            predicted_text = merge_strings(predicted_text, piece)
-            
-        return predicted_text.strip()
-    
-    # Otherwise, it is a normal short word or character
-    if preprocess:
-        from utils.preprocess import preprocess_image
-        # preprocess_image already reads from path
-        chunk_cv = preprocess_image(image_path)
-        full_image = Image.fromarray(cv2.cvtColor(chunk_cv, cv2.COLOR_BGR2RGB))
-        
-    pixel_values = processor(full_image, return_tensors="pt").pixel_values.to(device)
+            piece = decode_image(prepare_image(chunk))
+            merged_text = merge_strings(merged_text, piece)
+            if right >= width:
+                break
+            left += stride
 
-    # Generate prediction with simpler greedy parameters
-    with torch.no_grad():
-        generated_ids = model.generate(
-            pixel_values,
-            max_new_tokens=256,
-            num_beams=1,
-            length_penalty=1.0,
-        )
+        return merged_text.strip()
 
-    # Decode tokens → text
-    predicted_text = processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
-    return predicted_text
+    # Short/normal image path
+    processed = prepare_image(full_image)
+    return decode_image(processed).strip()
 
 
 def main():

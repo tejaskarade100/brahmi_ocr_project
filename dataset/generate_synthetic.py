@@ -197,23 +197,26 @@ def render_text_image(
     ink = (r, g, b)
 
     # --- measure text and centre it ---
-    bbox = draw.textbbox((0, 0), text, font=font)
-    tw = bbox[2] - bbox[0]
-    th = bbox[3] - bbox[1]
-
-    # If the text is wider than the image, shrink font dynamically
     effective_font = font
-    if tw > img_width - 20 or th > img_height - 20:
-        scale = min((img_width - 20) / max(tw, 1), (img_height - 20) / max(th, 1))
-        new_size = max(int(font.size * scale), 12)
-        try:
-            effective_font = ImageFont.truetype(font.path, new_size)
-        except Exception:
-            effective_font = font
+    for _ in range(4):
         draw = ImageDraw.Draw(img)
         bbox = draw.textbbox((0, 0), text, font=effective_font)
         tw = bbox[2] - bbox[0]
         th = bbox[3] - bbox[1]
+        if tw <= img_width - 20 and th <= img_height - 20:
+            break
+
+        scale = min((img_width - 20) / max(tw, 1), (img_height - 20) / max(th, 1))
+        next_size = max(int(effective_font.size * scale), 12)
+        if next_size >= effective_font.size:
+            next_size = max(effective_font.size - 1, 12)
+        if next_size == effective_font.size:
+            break
+
+        try:
+            effective_font = ImageFont.truetype(font.path, next_size)
+        except Exception:
+            break
 
     x = (img_width - tw) // 2
     y = (img_height - th) // 2
