@@ -205,9 +205,18 @@ def main():
     print(f"Device : {device}  |  FP16 : {use_fp16}")
 
     # ---- Processor & model ----
-    print(f"Loading processor & model: {args.model_name}")
-    processor = TrOCRProcessor.from_pretrained(args.model_name, use_fast=False)
-    model = load_model(args.model_name, processor)
+    # Auto-resume logic: check if model already exists in output_dir or drive_save_path
+    model_name_or_path = args.model_name
+    if os.path.exists(os.path.join(args.output_dir, "config.json")):
+        print(f"\n🔄 [RESUME] Found existing model at '{args.output_dir}'. Training more from this checkpoint!")
+        model_name_or_path = args.output_dir
+    elif args.drive_save_path and os.path.exists(os.path.join(args.drive_save_path, "config.json")):
+        print(f"\n🔄 [RESUME] Found existing model at '{args.drive_save_path}'. Training more from this checkpoint!")
+        model_name_or_path = args.drive_save_path
+
+    print(f"Loading processor & model: {model_name_or_path}")
+    processor = TrOCRProcessor.from_pretrained(model_name_or_path, use_fast=False)
+    model = load_model(model_name_or_path, processor)
     model.to(device)
 
     # ---- Datasets ----
