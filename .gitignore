@@ -42,5 +42,5 @@ dist/
 *.onnx
 
 # Data and Models directories (uncomment if you want to ignore the whole folders)
-# dataset/
-# model/
+dataset/
+model/
