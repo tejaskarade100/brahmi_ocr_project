@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Caches
+.cache/
+.pytest_cache/
+.mypy_cache/
+
+# Virtual Environments
+env/
+venv/
+.env/
+.venv/
+ENV/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# IDE / Editor Configurations
+.idea/
+.vscode/
+*.swp
+
+# Build / Distribution
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Logs
+*.log
+
+# Machine Learning Models / Weights
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.h5
+*.onnx
+
+# Data and Models directories (uncomment if you want to ignore the whole folders)
+# dataset/
+# model/
