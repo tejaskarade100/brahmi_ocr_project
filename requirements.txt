@@ -19,6 +19,8 @@ tiktoken
 opencv-python
 Pillow
 numpy
+uharfbuzz
+freetype-py
 
 # --- Utilities ---
 tqdm

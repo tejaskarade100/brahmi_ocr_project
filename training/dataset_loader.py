@@ -35,6 +35,7 @@ IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".bmp", ".tif", ".tiff", ".webp"}
 MAP_METADATA_KEYS = {"char", "latin", "unicode", "folder", "desc"}
 MIXED_LABEL_VALUE = "MIXED"
 MIXED_LABEL_FILES = (
+    "labels.json",
     "labels.txt",
     "labels.tsv",
     "labels.csv",
@@ -104,6 +105,19 @@ def load_map_entries(map_path: str) -> List[MapEntry]:
 
 def _read_label_lines(label_file_path: str) -> Iterable[Tuple[str, str]]:
     ext = os.path.splitext(label_file_path)[1].lower()
+    
+    if ext == ".json":
+        with open(label_file_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        # Support schemas using 'entries' or 'items' array
+        items = data.get("entries", data.get("items", []))
+        for item in items:
+            image_ref = item.get("file", "").strip()
+            text = item.get("text_brahmi", "").strip()
+            if image_ref and text:
+                yield image_ref, text
+        return
+
     delimiter = ","
     if ext in {".txt", ".tsv"}:
         delimiter = "\t"

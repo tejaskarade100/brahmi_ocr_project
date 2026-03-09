@@ -79,9 +79,38 @@ dataset/
 
 `map.json` entries support:
 - Fixed label folder: every image in folder gets the mapped `char`
-- Mixed folder (`char = "MIXED"`): labels come from `labels.txt` / `labels.tsv` / `labels.csv` / `annotations.*`
+- Mixed folder (`char = "MIXED"`): labels come from `labels.json` / `labels.txt` / `labels.tsv` / `labels.csv` / `annotations.*`
 
-### 3. Train the model
+### 3. Generate synthetic dataset (modular pipeline)
+
+Use this exact order:
+
+```bash
+# A) Pre-check current dataset structure/composition
+python dataset/validate_dataset.py --data_dir dataset --json_out dataset/reports/precheck.json
+
+# B) Build generation targets from map.json + current folder counts
+python dataset/build_targets.py --data_dir dataset --map_file map.json --target_count 1000 --out_csv dataset/reports/targets_manifest.csv
+
+# C) Dry run (small batch) to verify styles + label generation
+python dataset/generate_synthetic.py --data_dir dataset --manifest dataset/reports/targets_manifest.csv --dry_run --batch_limit 5
+
+# D) Full generation
+python dataset/generate_synthetic.py --data_dir dataset --manifest dataset/reports/targets_manifest.csv
+
+# E) Post-generation dedupe + quota audit
+python dataset/postcheck.py --data_dir dataset --manifest dataset/reports/targets_manifest.csv
+
+# F) Final validation sweep
+python dataset/validate_dataset.py --data_dir dataset --json_out dataset/reports/final_report.json --strict
+```
+
+Notes:
+- `generate_synthetic.py` now uses HarfBuzz shaping when available to correctly place Brahmi dependent vowel signs.
+- If HarfBuzz is unavailable, generation falls back to Pillow and prints a warning.
+- If `postcheck.py` reports underfilled classes after dedupe, rerun steps `B -> D -> E`.
+
+### 4. Train the model
 
 ```bash
 python training/train.py
@@ -104,20 +133,44 @@ Options:
 The script automatically uses **FP16** if a CUDA GPU is available.
 It also prints dataset breakdown (characters/ngrams, words, phrases, long sentences).
 
-### 4. Run inference
+### 5. Run inference
+
+Basic:
 
 ```bash
 python inference/predict.py --image path/to/brahmi_image.png
-
-# With preprocessing (recommended for real stone/manuscript images)
-python inference/predict.py --image path/to/image.png --preprocess
-
-# Full debug JSON for backend/UI
-python inference/predict.py --image path/to/image.png --preprocess --debug --json_out result.json
 ```
 
+With preprocessing:
 
-### 5. Training on Free GPU Cloud Platforms (Colab / Kaggle)
+```bash
+python inference/predict.py --image path/to/image.png --preprocess
+```
+
+Preprocess with explicit threshold method:
+
+```bash
+python inference/predict.py --image path/to/image.png --preprocess --threshold_method auto
+python inference/predict.py --image path/to/image.png --preprocess --threshold_method adaptive
+python inference/predict.py --image path/to/image.png --preprocess --threshold_method otsu
+python inference/predict.py --image path/to/image.png --preprocess --threshold_method simple
+```
+
+Debug + JSON trace:
+
+```bash
+python inference/predict.py --image path/to/image.png --preprocess --threshold_method auto --debug --json_out result.json
+```
+
+Resolution sweep (helpful for difficult images):
+
+```bash
+python inference/predict.py --image path/to/image.png --preprocess --threshold_method auto --image_size 384
+python inference/predict.py --image path/to/image.png --preprocess --threshold_method auto --image_size 448
+python inference/predict.py --image path/to/image.png --preprocess --threshold_method auto --image_size 512
+```
+
+### 6. Training on Free GPU Cloud Platforms (Colab / Kaggle)
 
 Because training TrOCR requires significant compute, you can use the provided Jupyter Notebooks to seamlessly train on free GPUs without losing your progress!
 
@@ -153,7 +206,7 @@ Kaggle offers **30 hours per week of free T4x2 GPU time**.
 
 - **`dataset/map.json`** — canonical label/folder mapping (single source of truth)
 - **Fixed class folders** — labels taken directly from mapped `char`
-- **Mixed text folder(s)** — labels read from `labels.*` / `annotations.*` manifest
+- **Mixed text folder(s)** — labels read from `labels.json` / `labels.*` / `annotations.*` manifest
 - **Train/Val/Test** — generated at runtime by `training/dataset_loader.py` using configured split ratios
 
 ## Reference

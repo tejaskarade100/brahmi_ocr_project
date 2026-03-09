@@ -41,6 +41,11 @@ dist/
 *.h5
 *.onnx
 
-# Data and Models directories (uncomment if you want to ignore the whole folders)
-dataset/
+# Data and Models directories (keep only dataset pipeline source files tracked)
+dataset/*
+!dataset/build_targets.py
+!dataset/generate_synthetic.py
+!dataset/postcheck.py
+!dataset/validate_dataset.py
+!dataset/map.json
 model/

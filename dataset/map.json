@@ -1,0 +1,3160 @@
+{
+  "1Vowels": {
+    "1_a": {
+      "char": "𑀅",
+      "latin": "a",
+      "unicode": "U+11005",
+      "folder": "1Vowels/1_a"
+    },
+    "2_ā": {
+      "char": "𑀆",
+      "latin": "ā",
+      "unicode": "U+11006",
+      "folder": "1Vowels/2_ā"
+    },
+    "3_i": {
+      "char": "𑀇",
+      "latin": "i",
+      "unicode": "U+11007",
+      "folder": "1Vowels/3_i"
+    },
+    "4_ī": {
+      "char": "𑀈",
+      "latin": "ī",
+      "unicode": "U+11008",
+      "folder": "1Vowels/4_ī"
+    },
+    "5_u": {
+      "char": "𑀉",
+      "latin": "u",
+      "unicode": "U+11009",
+      "folder": "1Vowels/5_u"
+    },
+    "6_ū": {
+      "char": "𑀊",
+      "latin": "ū",
+      "unicode": "U+1100A",
+      "folder": "1Vowels/6_ū"
+    },
+    "7_ṛ": {
+      "char": "𑀋",
+      "latin": "ṛ",
+      "unicode": "U+1100B",
+      "folder": "1Vowels/7_ṛ"
+    },
+    "8_ṝ": {
+      "char": "𑀌",
+      "latin": "ṝ",
+      "unicode": "U+1100C",
+      "folder": "1Vowels/8_ṝ"
+    },
+    "9_l̥": {
+      "char": "𑀍",
+      "latin": "l̥",
+      "unicode": "U+1100D",
+      "folder": "1Vowels/9_l̥"
+    },
+    "10_l̥̄": {
+      "char": "𑀎",
+      "latin": "l̥̄",
+      "unicode": "U+1100E",
+      "folder": "1Vowels/10_l̥̄"
+    },
+    "11_e": {
+      "char": "𑀏",
+      "latin": "e",
+      "unicode": "U+1100F",
+      "folder": "1Vowels/11_e"
+    },
+    "12_ai": {
+      "char": "𑀐",
+      "latin": "ai",
+      "unicode": "U+11010",
+      "folder": "1Vowels/12_ai"
+    },
+    "13_o": {
+      "char": "𑀑",
+      "latin": "o",
+      "unicode": "U+11011",
+      "folder": "1Vowels/13_o"
+    },
+    "14_au": {
+      "char": "𑀒",
+      "latin": "au",
+      "unicode": "U+11012",
+      "folder": "1Vowels/14_au"
+    }
+  },
+  "2Consonants": {
+    "1_Ka_group": {
+      "ka": {
+        "1_base": {
+          "char": "𑀓",
+          "latin": "ka",
+          "folder": "2Consonants/1_Ka_group/ka/1_base"
+        },
+        "2_aa": {
+          "char": "𑀓𑀸",
+          "latin": "kaaa",
+          "folder": "2Consonants/1_Ka_group/ka/2_aa"
+        },
+        "3_i": {
+          "char": "𑀓𑀺",
+          "latin": "kai",
+          "folder": "2Consonants/1_Ka_group/ka/3_i"
+        },
+        "4_ii": {
+          "char": "𑀓𑀻",
+          "latin": "kaii",
+          "folder": "2Consonants/1_Ka_group/ka/4_ii"
+        },
+        "5_u": {
+          "char": "𑀓𑀼",
+          "latin": "kau",
+          "folder": "2Consonants/1_Ka_group/ka/5_u"
+        },
+        "6_uu": {
+          "char": "𑀓𑀽",
+          "latin": "kauu",
+          "folder": "2Consonants/1_Ka_group/ka/6_uu"
+        },
+        "7_r": {
+          "char": "𑀓𑀾",
+          "latin": "kar",
+          "folder": "2Consonants/1_Ka_group/ka/7_r"
+        },
+        "8_rr": {
+          "char": "𑀓𑀿",
+          "latin": "karr",
+          "folder": "2Consonants/1_Ka_group/ka/8_rr"
+        },
+        "9_l": {
+          "char": "𑀓𑁀",
+          "latin": "kal",
+          "folder": "2Consonants/1_Ka_group/ka/9_l"
+        },
+        "10_ll": {
+          "char": "𑀓𑁁",
+          "latin": "kall",
+          "folder": "2Consonants/1_Ka_group/ka/10_ll"
+        },
+        "11_e": {
+          "char": "𑀓𑁂",
+          "latin": "kae",
+          "folder": "2Consonants/1_Ka_group/ka/11_e"
+        },
+        "12_ai": {
+          "char": "𑀓𑁃",
+          "latin": "kaai",
+          "folder": "2Consonants/1_Ka_group/ka/12_ai"
+        },
+        "13_o": {
+          "char": "𑀓𑁄",
+          "latin": "kao",
+          "folder": "2Consonants/1_Ka_group/ka/13_o"
+        },
+        "14_au": {
+          "char": "𑀓𑁅",
+          "latin": "kaau",
+          "folder": "2Consonants/1_Ka_group/ka/14_au"
+        }
+      },
+      "kha": {
+        "1_base": {
+          "char": "𑀔",
+          "latin": "kha",
+          "folder": "2Consonants/1_Ka_group/kha/1_base"
+        },
+        "2_aa": {
+          "char": "𑀔𑀸",
+          "latin": "khaaa",
+          "folder": "2Consonants/1_Ka_group/kha/2_aa"
+        },
+        "3_i": {
+          "char": "𑀔𑀺",
+          "latin": "khai",
+          "folder": "2Consonants/1_Ka_group/kha/3_i"
+        },
+        "4_ii": {
+          "char": "𑀔𑀻",
+          "latin": "khaii",
+          "folder": "2Consonants/1_Ka_group/kha/4_ii"
+        },
+        "5_u": {
+          "char": "𑀔𑀼",
+          "latin": "khau",
+          "folder": "2Consonants/1_Ka_group/kha/5_u"
+        },
+        "6_uu": {
+          "char": "𑀔𑀽",
+          "latin": "khauu",
+          "folder": "2Consonants/1_Ka_group/kha/6_uu"
+        },
+        "7_r": {
+          "char": "𑀔𑀾",
+          "latin": "khar",
+          "folder": "2Consonants/1_Ka_group/kha/7_r"
+        },
+        "8_rr": {
+          "char": "𑀔𑀿",
+          "latin": "kharr",
+          "folder": "2Consonants/1_Ka_group/kha/8_rr"
+        },
+        "9_l": {
+          "char": "𑀔𑁀",
+          "latin": "khal",
+          "folder": "2Consonants/1_Ka_group/kha/9_l"
+        },
+        "10_ll": {
+          "char": "𑀔𑁁",
+          "latin": "khall",
+          "folder": "2Consonants/1_Ka_group/kha/10_ll"
+        },
+        "11_e": {
+          "char": "𑀔𑁂",
+          "latin": "khae",
+          "folder": "2Consonants/1_Ka_group/kha/11_e"
+        },
+        "12_ai": {
+          "char": "𑀔𑁃",
+          "latin": "khaai",
+          "folder": "2Consonants/1_Ka_group/kha/12_ai"
+        },
+        "13_o": {
+          "char": "𑀔𑁄",
+          "latin": "khao",
+          "folder": "2Consonants/1_Ka_group/kha/13_o"
+        },
+        "14_au": {
+          "char": "𑀔𑁅",
+          "latin": "khaau",
+          "folder": "2Consonants/1_Ka_group/kha/14_au"
+        }
+      },
+      "ga": {
+        "1_base": {
+          "char": "𑀕",
+          "latin": "ga",
+          "folder": "2Consonants/1_Ka_group/ga/1_base"
+        },
+        "2_aa": {
+          "char": "𑀕𑀸",
+          "latin": "gaaa",
+          "folder": "2Consonants/1_Ka_group/ga/2_aa"
+        },
+        "3_i": {
+          "char": "𑀕𑀺",
+          "latin": "gai",
+          "folder": "2Consonants/1_Ka_group/ga/3_i"
+        },
+        "4_ii": {
+          "char": "𑀕𑀻",
+          "latin": "gaii",
+          "folder": "2Consonants/1_Ka_group/ga/4_ii"
+        },
+        "5_u": {
+          "char": "𑀕𑀼",
+          "latin": "gau",
+          "folder": "2Consonants/1_Ka_group/ga/5_u"
+        },
+        "6_uu": {
+          "char": "𑀕𑀽",
+          "latin": "gauu",
+          "folder": "2Consonants/1_Ka_group/ga/6_uu"
+        },
+        "7_r": {
+          "char": "𑀕𑀾",
+          "latin": "gar",
+          "folder": "2Consonants/1_Ka_group/ga/7_r"
+        },
+        "8_rr": {
+          "char": "𑀕𑀿",
+          "latin": "garr",
+          "folder": "2Consonants/1_Ka_group/ga/8_rr"
+        },
+        "9_l": {
+          "char": "𑀕𑁀",
+          "latin": "gal",
+          "folder": "2Consonants/1_Ka_group/ga/9_l"
+        },
+        "10_ll": {
+          "char": "𑀕𑁁",
+          "latin": "gall",
+          "folder": "2Consonants/1_Ka_group/ga/10_ll"
+        },
+        "11_e": {
+          "char": "𑀕𑁂",
+          "latin": "gae",
+          "folder": "2Consonants/1_Ka_group/ga/11_e"
+        },
+        "12_ai": {
+          "char": "𑀕𑁃",
+          "latin": "gaai",
+          "folder": "2Consonants/1_Ka_group/ga/12_ai"
+        },
+        "13_o": {
+          "char": "𑀕𑁄",
+          "latin": "gao",
+          "folder": "2Consonants/1_Ka_group/ga/13_o"
+        },
+        "14_au": {
+          "char": "𑀕𑁅",
+          "latin": "gaau",
+          "folder": "2Consonants/1_Ka_group/ga/14_au"
+        }
+      },
+      "gha": {
+        "1_base": {
+          "char": "𑀖",
+          "latin": "gha",
+          "folder": "2Consonants/1_Ka_group/gha/1_base"
+        },
+        "2_aa": {
+          "char": "𑀖𑀸",
+          "latin": "ghaaa",
+          "folder": "2Consonants/1_Ka_group/gha/2_aa"
+        },
+        "3_i": {
+          "char": "𑀖𑀺",
+          "latin": "ghai",
+          "folder": "2Consonants/1_Ka_group/gha/3_i"
+        },
+        "4_ii": {
+          "char": "𑀖𑀻",
+          "latin": "ghaii",
+          "folder": "2Consonants/1_Ka_group/gha/4_ii"
+        },
+        "5_u": {
+          "char": "𑀖𑀼",
+          "latin": "ghau",
+          "folder": "2Consonants/1_Ka_group/gha/5_u"
+        },
+        "6_uu": {
+          "char": "𑀖𑀽",
+          "latin": "ghauu",
+          "folder": "2Consonants/1_Ka_group/gha/6_uu"
+        },
+        "7_r": {
+          "char": "𑀖𑀾",
+          "latin": "ghar",
+          "folder": "2Consonants/1_Ka_group/gha/7_r"
+        },
+        "8_rr": {
+          "char": "𑀖𑀿",
+          "latin": "gharr",
+          "folder": "2Consonants/1_Ka_group/gha/8_rr"
+        },
+        "9_l": {
+          "char": "𑀖𑁀",
+          "latin": "ghal",
+          "folder": "2Consonants/1_Ka_group/gha/9_l"
+        },
+        "10_ll": {
+          "char": "𑀖𑁁",
+          "latin": "ghall",
+          "folder": "2Consonants/1_Ka_group/gha/10_ll"
+        },
+        "11_e": {
+          "char": "𑀖𑁂",
+          "latin": "ghae",
+          "folder": "2Consonants/1_Ka_group/gha/11_e"
+        },
+        "12_ai": {
+          "char": "𑀖𑁃",
+          "latin": "ghaai",
+          "folder": "2Consonants/1_Ka_group/gha/12_ai"
+        },
+        "13_o": {
+          "char": "𑀖𑁄",
+          "latin": "ghao",
+          "folder": "2Consonants/1_Ka_group/gha/13_o"
+        },
+        "14_au": {
+          "char": "𑀖𑁅",
+          "latin": "ghaau",
+          "folder": "2Consonants/1_Ka_group/gha/14_au"
+        }
+      },
+      "ṅa": {
+        "1_base": {
+          "char": "𑀗",
+          "latin": "ṅa",
+          "folder": "2Consonants/1_Ka_group/ṅa/1_base"
+        },
+        "2_aa": {
+          "char": "𑀗𑀸",
+          "latin": "ṅaaa",
+          "folder": "2Consonants/1_Ka_group/ṅa/2_aa"
+        },
+        "3_i": {
+          "char": "𑀗𑀺",
+          "latin": "ṅai",
+          "folder": "2Consonants/1_Ka_group/ṅa/3_i"
+        },
+        "4_ii": {
+          "char": "𑀗𑀻",
+          "latin": "ṅaii",
+          "folder": "2Consonants/1_Ka_group/ṅa/4_ii"
+        },
+        "5_u": {
+          "char": "𑀗𑀼",
+          "latin": "ṅau",
+          "folder": "2Consonants/1_Ka_group/ṅa/5_u"
+        },
+        "6_uu": {
+          "char": "𑀗𑀽",
+          "latin": "ṅauu",
+          "folder": "2Consonants/1_Ka_group/ṅa/6_uu"
+        },
+        "7_r": {
+          "char": "𑀗𑀾",
+          "latin": "ṅar",
+          "folder": "2Consonants/1_Ka_group/ṅa/7_r"
+        },
+        "8_rr": {
+          "char": "𑀗𑀿",
+          "latin": "ṅarr",
+          "folder": "2Consonants/1_Ka_group/ṅa/8_rr"
+        },
+        "9_l": {
+          "char": "𑀗𑁀",
+          "latin": "ṅal",
+          "folder": "2Consonants/1_Ka_group/ṅa/9_l"
+        },
+        "10_ll": {
+          "char": "𑀗𑁁",
+          "latin": "ṅall",
+          "folder": "2Consonants/1_Ka_group/ṅa/10_ll"
+        },
+        "11_e": {
+          "char": "𑀗𑁂",
+          "latin": "ṅae",
+          "folder": "2Consonants/1_Ka_group/ṅa/11_e"
+        },
+        "12_ai": {
+          "char": "𑀗𑁃",
+          "latin": "ṅaai",
+          "folder": "2Consonants/1_Ka_group/ṅa/12_ai"
+        },
+        "13_o": {
+          "char": "𑀗𑁄",
+          "latin": "ṅao",
+          "folder": "2Consonants/1_Ka_group/ṅa/13_o"
+        },
+        "14_au": {
+          "char": "𑀗𑁅",
+          "latin": "ṅaau",
+          "folder": "2Consonants/1_Ka_group/ṅa/14_au"
+        }
+      }
+    },
+    "2_Ca_group": {
+      "ca": {
+        "1_base": {
+          "char": "𑀘",
+          "latin": "ca",
+          "folder": "2Consonants/2_Ca_group/ca/1_base"
+        },
+        "2_aa": {
+          "char": "𑀘𑀸",
+          "latin": "caaa",
+          "folder": "2Consonants/2_Ca_group/ca/2_aa"
+        },
+        "3_i": {
+          "char": "𑀘𑀺",
+          "latin": "cai",
+          "folder": "2Consonants/2_Ca_group/ca/3_i"
+        },
+        "4_ii": {
+          "char": "𑀘𑀻",
+          "latin": "caii",
+          "folder": "2Consonants/2_Ca_group/ca/4_ii"
+        },
+        "5_u": {
+          "char": "𑀘𑀼",
+          "latin": "cau",
+          "folder": "2Consonants/2_Ca_group/ca/5_u"
+        },
+        "6_uu": {
+          "char": "𑀘𑀽",
+          "latin": "cauu",
+          "folder": "2Consonants/2_Ca_group/ca/6_uu"
+        },
+        "7_r": {
+          "char": "𑀘𑀾",
+          "latin": "car",
+          "folder": "2Consonants/2_Ca_group/ca/7_r"
+        },
+        "8_rr": {
+          "char": "𑀘𑀿",
+          "latin": "carr",
+          "folder": "2Consonants/2_Ca_group/ca/8_rr"
+        },
+        "9_l": {
+          "char": "𑀘𑁀",
+          "latin": "cal",
+          "folder": "2Consonants/2_Ca_group/ca/9_l"
+        },
+        "10_ll": {
+          "char": "𑀘𑁁",
+          "latin": "call",
+          "folder": "2Consonants/2_Ca_group/ca/10_ll"
+        },
+        "11_e": {
+          "char": "𑀘𑁂",
+          "latin": "cae",
+          "folder": "2Consonants/2_Ca_group/ca/11_e"
+        },
+        "12_ai": {
+          "char": "𑀘𑁃",
+          "latin": "caai",
+          "folder": "2Consonants/2_Ca_group/ca/12_ai"
+        },
+        "13_o": {
+          "char": "𑀘𑁄",
+          "latin": "cao",
+          "folder": "2Consonants/2_Ca_group/ca/13_o"
+        },
+        "14_au": {
+          "char": "𑀘𑁅",
+          "latin": "caau",
+          "folder": "2Consonants/2_Ca_group/ca/14_au"
+        }
+      },
+      "cha": {
+        "1_base": {
+          "char": "𑀙",
+          "latin": "cha",
+          "folder": "2Consonants/2_Ca_group/cha/1_base"
+        },
+        "2_aa": {
+          "char": "𑀙𑀸",
+          "latin": "chaaa",
+          "folder": "2Consonants/2_Ca_group/cha/2_aa"
+        },
+        "3_i": {
+          "char": "𑀙𑀺",
+          "latin": "chai",
+          "folder": "2Consonants/2_Ca_group/cha/3_i"
+        },
+        "4_ii": {
+          "char": "𑀙𑀻",
+          "latin": "chaii",
+          "folder": "2Consonants/2_Ca_group/cha/4_ii"
+        },
+        "5_u": {
+          "char": "𑀙𑀼",
+          "latin": "chau",
+          "folder": "2Consonants/2_Ca_group/cha/5_u"
+        },
+        "6_uu": {
+          "char": "𑀙𑀽",
+          "latin": "chauu",
+          "folder": "2Consonants/2_Ca_group/cha/6_uu"
+        },
+        "7_r": {
+          "char": "𑀙𑀾",
+          "latin": "char",
+          "folder": "2Consonants/2_Ca_group/cha/7_r"
+        },
+        "8_rr": {
+          "char": "𑀙𑀿",
+          "latin": "charr",
+          "folder": "2Consonants/2_Ca_group/cha/8_rr"
+        },
+        "9_l": {
+          "char": "𑀙𑁀",
+          "latin": "chal",
+          "folder": "2Consonants/2_Ca_group/cha/9_l"
+        },
+        "10_ll": {
+          "char": "𑀙𑁁",
+          "latin": "chall",
+          "folder": "2Consonants/2_Ca_group/cha/10_ll"
+        },
+        "11_e": {
+          "char": "𑀙𑁂",
+          "latin": "chae",
+          "folder": "2Consonants/2_Ca_group/cha/11_e"
+        },
+        "12_ai": {
+          "char": "𑀙𑁃",
+          "latin": "chaai",
+          "folder": "2Consonants/2_Ca_group/cha/12_ai"
+        },
+        "13_o": {
+          "char": "𑀙𑁄",
+          "latin": "chao",
+          "folder": "2Consonants/2_Ca_group/cha/13_o"
+        },
+        "14_au": {
+          "char": "𑀙𑁅",
+          "latin": "chaau",
+          "folder": "2Consonants/2_Ca_group/cha/14_au"
+        }
+      },
+      "ja": {
+        "1_base": {
+          "char": "𑀚",
+          "latin": "ja",
+          "folder": "2Consonants/2_Ca_group/ja/1_base"
+        },
+        "2_aa": {
+          "char": "𑀚𑀸",
+          "latin": "jaaa",
+          "folder": "2Consonants/2_Ca_group/ja/2_aa"
+        },
+        "3_i": {
+          "char": "𑀚𑀺",
+          "latin": "jai",
+          "folder": "2Consonants/2_Ca_group/ja/3_i"
+        },
+        "4_ii": {
+          "char": "𑀚𑀻",
+          "latin": "jaii",
+          "folder": "2Consonants/2_Ca_group/ja/4_ii"
+        },
+        "5_u": {
+          "char": "𑀚𑀼",
+          "latin": "jau",
+          "folder": "2Consonants/2_Ca_group/ja/5_u"
+        },
+        "6_uu": {
+          "char": "𑀚𑀽",
+          "latin": "jauu",
+          "folder": "2Consonants/2_Ca_group/ja/6_uu"
+        },
+        "7_r": {
+          "char": "𑀚𑀾",
+          "latin": "jar",
+          "folder": "2Consonants/2_Ca_group/ja/7_r"
+        },
+        "8_rr": {
+          "char": "𑀚𑀿",
+          "latin": "jarr",
+          "folder": "2Consonants/2_Ca_group/ja/8_rr"
+        },
+        "9_l": {
+          "char": "𑀚𑁀",
+          "latin": "jal",
+          "folder": "2Consonants/2_Ca_group/ja/9_l"
+        },
+        "10_ll": {
+          "char": "𑀚𑁁",
+          "latin": "jall",
+          "folder": "2Consonants/2_Ca_group/ja/10_ll"
+        },
+        "11_e": {
+          "char": "𑀚𑁂",
+          "latin": "jae",
+          "folder": "2Consonants/2_Ca_group/ja/11_e"
+        },
+        "12_ai": {
+          "char": "𑀚𑁃",
+          "latin": "jaai",
+          "folder": "2Consonants/2_Ca_group/ja/12_ai"
+        },
+        "13_o": {
+          "char": "𑀚𑁄",
+          "latin": "jao",
+          "folder": "2Consonants/2_Ca_group/ja/13_o"
+        },
+        "14_au": {
+          "char": "𑀚𑁅",
+          "latin": "jaau",
+          "folder": "2Consonants/2_Ca_group/ja/14_au"
+        }
+      },
+      "jha": {
+        "1_base": {
+          "char": "𑀛",
+          "latin": "jha",
+          "folder": "2Consonants/2_Ca_group/jha/1_base"
+        },
+        "2_aa": {
+          "char": "𑀛𑀸",
+          "latin": "jhaaa",
+          "folder": "2Consonants/2_Ca_group/jha/2_aa"
+        },
+        "3_i": {
+          "char": "𑀛𑀺",
+          "latin": "jhai",
+          "folder": "2Consonants/2_Ca_group/jha/3_i"
+        },
+        "4_ii": {
+          "char": "𑀛𑀻",
+          "latin": "jhaii",
+          "folder": "2Consonants/2_Ca_group/jha/4_ii"
+        },
+        "5_u": {
+          "char": "𑀛𑀼",
+          "latin": "jhau",
+          "folder": "2Consonants/2_Ca_group/jha/5_u"
+        },
+        "6_uu": {
+          "char": "𑀛𑀽",
+          "latin": "jhauu",
+          "folder": "2Consonants/2_Ca_group/jha/6_uu"
+        },
+        "7_r": {
+          "char": "𑀛𑀾",
+          "latin": "jhar",
+          "folder": "2Consonants/2_Ca_group/jha/7_r"
+        },
+        "8_rr": {
+          "char": "𑀛𑀿",
+          "latin": "jharr",
+          "folder": "2Consonants/2_Ca_group/jha/8_rr"
+        },
+        "9_l": {
+          "char": "𑀛𑁀",
+          "latin": "jhal",
+          "folder": "2Consonants/2_Ca_group/jha/9_l"
+        },
+        "10_ll": {
+          "char": "𑀛𑁁",
+          "latin": "jhall",
+          "folder": "2Consonants/2_Ca_group/jha/10_ll"
+        },
+        "11_e": {
+          "char": "𑀛𑁂",
+          "latin": "jhae",
+          "folder": "2Consonants/2_Ca_group/jha/11_e"
+        },
+        "12_ai": {
+          "char": "𑀛𑁃",
+          "latin": "jhaai",
+          "folder": "2Consonants/2_Ca_group/jha/12_ai"
+        },
+        "13_o": {
+          "char": "𑀛𑁄",
+          "latin": "jhao",
+          "folder": "2Consonants/2_Ca_group/jha/13_o"
+        },
+        "14_au": {
+          "char": "𑀛𑁅",
+          "latin": "jhaau",
+          "folder": "2Consonants/2_Ca_group/jha/14_au"
+        }
+      },
+      "ña": {
+        "1_base": {
+          "char": "𑀜",
+          "latin": "ña",
+          "folder": "2Consonants/2_Ca_group/ña/1_base"
+        },
+        "2_aa": {
+          "char": "𑀜𑀸",
+          "latin": "ñaaa",
+          "folder": "2Consonants/2_Ca_group/ña/2_aa"
+        },
+        "3_i": {
+          "char": "𑀜𑀺",
+          "latin": "ñai",
+          "folder": "2Consonants/2_Ca_group/ña/3_i"
+        },
+        "4_ii": {
+          "char": "𑀜𑀻",
+          "latin": "ñaii",
+          "folder": "2Consonants/2_Ca_group/ña/4_ii"
+        },
+        "5_u": {
+          "char": "𑀜𑀼",
+          "latin": "ñau",
+          "folder": "2Consonants/2_Ca_group/ña/5_u"
+        },
+        "6_uu": {
+          "char": "𑀜𑀽",
+          "latin": "ñauu",
+          "folder": "2Consonants/2_Ca_group/ña/6_uu"
+        },
+        "7_r": {
+          "char": "𑀜𑀾",
+          "latin": "ñar",
+          "folder": "2Consonants/2_Ca_group/ña/7_r"
+        },
+        "8_rr": {
+          "char": "𑀜𑀿",
+          "latin": "ñarr",
+          "folder": "2Consonants/2_Ca_group/ña/8_rr"
+        },
+        "9_l": {
+          "char": "𑀜𑁀",
+          "latin": "ñal",
+          "folder": "2Consonants/2_Ca_group/ña/9_l"
+        },
+        "10_ll": {
+          "char": "𑀜𑁁",
+          "latin": "ñall",
+          "folder": "2Consonants/2_Ca_group/ña/10_ll"
+        },
+        "11_e": {
+          "char": "𑀜𑁂",
+          "latin": "ñae",
+          "folder": "2Consonants/2_Ca_group/ña/11_e"
+        },
+        "12_ai": {
+          "char": "𑀜𑁃",
+          "latin": "ñaai",
+          "folder": "2Consonants/2_Ca_group/ña/12_ai"
+        },
+        "13_o": {
+          "char": "𑀜𑁄",
+          "latin": "ñao",
+          "folder": "2Consonants/2_Ca_group/ña/13_o"
+        },
+        "14_au": {
+          "char": "𑀜𑁅",
+          "latin": "ñaau",
+          "folder": "2Consonants/2_Ca_group/ña/14_au"
+        }
+      }
+    },
+    "3_a_group": {
+      "ṭa": {
+        "1_base": {
+          "char": "𑀝",
+          "latin": "ṭa",
+          "folder": "2Consonants/3_a_group/ṭa/1_base"
+        },
+        "2_aa": {
+          "char": "𑀝𑀸",
+          "latin": "ṭaaa",
+          "folder": "2Consonants/3_a_group/ṭa/2_aa"
+        },
+        "3_i": {
+          "char": "𑀝𑀺",
+          "latin": "ṭai",
+          "folder": "2Consonants/3_a_group/ṭa/3_i"
+        },
+        "4_ii": {
+          "char": "𑀝𑀻",
+          "latin": "ṭaii",
+          "folder": "2Consonants/3_a_group/ṭa/4_ii"
+        },
+        "5_u": {
+          "char": "𑀝𑀼",
+          "latin": "ṭau",
+          "folder": "2Consonants/3_a_group/ṭa/5_u"
+        },
+        "6_uu": {
+          "char": "𑀝𑀽",
+          "latin": "ṭauu",
+          "folder": "2Consonants/3_a_group/ṭa/6_uu"
+        },
+        "7_r": {
+          "char": "𑀝𑀾",
+          "latin": "ṭar",
+          "folder": "2Consonants/3_a_group/ṭa/7_r"
+        },
+        "8_rr": {
+          "char": "𑀝𑀿",
+          "latin": "ṭarr",
+          "folder": "2Consonants/3_a_group/ṭa/8_rr"
+        },
+        "9_l": {
+          "char": "𑀝𑁀",
+          "latin": "ṭal",
+          "folder": "2Consonants/3_a_group/ṭa/9_l"
+        },
+        "10_ll": {
+          "char": "𑀝𑁁",
+          "latin": "ṭall",
+          "folder": "2Consonants/3_a_group/ṭa/10_ll"
+        },
+        "11_e": {
+          "char": "𑀝𑁂",
+          "latin": "ṭae",
+          "folder": "2Consonants/3_a_group/ṭa/11_e"
+        },
+        "12_ai": {
+          "char": "𑀝𑁃",
+          "latin": "ṭaai",
+          "folder": "2Consonants/3_a_group/ṭa/12_ai"
+        },
+        "13_o": {
+          "char": "𑀝𑁄",
+          "latin": "ṭao",
+          "folder": "2Consonants/3_a_group/ṭa/13_o"
+        },
+        "14_au": {
+          "char": "𑀝𑁅",
+          "latin": "ṭaau",
+          "folder": "2Consonants/3_a_group/ṭa/14_au"
+        }
+      },
+      "ṭha": {
+        "1_base": {
+          "char": "𑀞",
+          "latin": "ṭha",
+          "folder": "2Consonants/3_a_group/ṭha/1_base"
+        },
+        "2_aa": {
+          "char": "𑀞𑀸",
+          "latin": "ṭhaaa",
+          "folder": "2Consonants/3_a_group/ṭha/2_aa"
+        },
+        "3_i": {
+          "char": "𑀞𑀺",
+          "latin": "ṭhai",
+          "folder": "2Consonants/3_a_group/ṭha/3_i"
+        },
+        "4_ii": {
+          "char": "𑀞𑀻",
+          "latin": "ṭhaii",
+          "folder": "2Consonants/3_a_group/ṭha/4_ii"
+        },
+        "5_u": {
+          "char": "𑀞𑀼",
+          "latin": "ṭhau",
+          "folder": "2Consonants/3_a_group/ṭha/5_u"
+        },
+        "6_uu": {
+          "char": "𑀞𑀽",
+          "latin": "ṭhauu",
+          "folder": "2Consonants/3_a_group/ṭha/6_uu"
+        },
+        "7_r": {
+          "char": "𑀞𑀾",
+          "latin": "ṭhar",
+          "folder": "2Consonants/3_a_group/ṭha/7_r"
+        },
+        "8_rr": {
+          "char": "𑀞𑀿",
+          "latin": "ṭharr",
+          "folder": "2Consonants/3_a_group/ṭha/8_rr"
+        },
+        "9_l": {
+          "char": "𑀞𑁀",
+          "latin": "ṭhal",
+          "folder": "2Consonants/3_a_group/ṭha/9_l"
+        },
+        "10_ll": {
+          "char": "𑀞𑁁",
+          "latin": "ṭhall",
+          "folder": "2Consonants/3_a_group/ṭha/10_ll"
+        },
+        "11_e": {
+          "char": "𑀞𑁂",
+          "latin": "ṭhae",
+          "folder": "2Consonants/3_a_group/ṭha/11_e"
+        },
+        "12_ai": {
+          "char": "𑀞𑁃",
+          "latin": "ṭhaai",
+          "folder": "2Consonants/3_a_group/ṭha/12_ai"
+        },
+        "13_o": {
+          "char": "𑀞𑁄",
+          "latin": "ṭhao",
+          "folder": "2Consonants/3_a_group/ṭha/13_o"
+        },
+        "14_au": {
+          "char": "𑀞𑁅",
+          "latin": "ṭhaau",
+          "folder": "2Consonants/3_a_group/ṭha/14_au"
+        }
+      },
+      "ḍa": {
+        "1_base": {
+          "char": "𑀟",
+          "latin": "ḍa",
+          "folder": "2Consonants/3_a_group/ḍa/1_base"
+        },
+        "2_aa": {
+          "char": "𑀟𑀸",
+          "latin": "ḍaaa",
+          "folder": "2Consonants/3_a_group/ḍa/2_aa"
+        },
+        "3_i": {
+          "char": "𑀟𑀺",
+          "latin": "ḍai",
+          "folder": "2Consonants/3_a_group/ḍa/3_i"
+        },
+        "4_ii": {
+          "char": "𑀟𑀻",
+          "latin": "ḍaii",
+          "folder": "2Consonants/3_a_group/ḍa/4_ii"
+        },
+        "5_u": {
+          "char": "𑀟𑀼",
+          "latin": "ḍau",
+          "folder": "2Consonants/3_a_group/ḍa/5_u"
+        },
+        "6_uu": {
+          "char": "𑀟𑀽",
+          "latin": "ḍauu",
+          "folder": "2Consonants/3_a_group/ḍa/6_uu"
+        },
+        "7_r": {
+          "char": "𑀟𑀾",
+          "latin": "ḍar",
+          "folder": "2Consonants/3_a_group/ḍa/7_r"
+        },
+        "8_rr": {
+          "char": "𑀟𑀿",
+          "latin": "ḍarr",
+          "folder": "2Consonants/3_a_group/ḍa/8_rr"
+        },
+        "9_l": {
+          "char": "𑀟𑁀",
+          "latin": "ḍal",
+          "folder": "2Consonants/3_a_group/ḍa/9_l"
+        },
+        "10_ll": {
+          "char": "𑀟𑁁",
+          "latin": "ḍall",
+          "folder": "2Consonants/3_a_group/ḍa/10_ll"
+        },
+        "11_e": {
+          "char": "𑀟𑁂",
+          "latin": "ḍae",
+          "folder": "2Consonants/3_a_group/ḍa/11_e"
+        },
+        "12_ai": {
+          "char": "𑀟𑁃",
+          "latin": "ḍaai",
+          "folder": "2Consonants/3_a_group/ḍa/12_ai"
+        },
+        "13_o": {
+          "char": "𑀟𑁄",
+          "latin": "ḍao",
+          "folder": "2Consonants/3_a_group/ḍa/13_o"
+        },
+        "14_au": {
+          "char": "𑀟𑁅",
+          "latin": "ḍaau",
+          "folder": "2Consonants/3_a_group/ḍa/14_au"
+        }
+      },
+      "ḍha": {
+        "1_base": {
+          "char": "𑀠",
+          "latin": "ḍha",
+          "folder": "2Consonants/3_a_group/ḍha/1_base"
+        },
+        "2_aa": {
+          "char": "𑀠𑀸",
+          "latin": "ḍhaaa",
+          "folder": "2Consonants/3_a_group/ḍha/2_aa"
+        },
+        "3_i": {
+          "char": "𑀠𑀺",
+          "latin": "ḍhai",
+          "folder": "2Consonants/3_a_group/ḍha/3_i"
+        },
+        "4_ii": {
+          "char": "𑀠𑀻",
+          "latin": "ḍhaii",
+          "folder": "2Consonants/3_a_group/ḍha/4_ii"
+        },
+        "5_u": {
+          "char": "𑀠𑀼",
+          "latin": "ḍhau",
+          "folder": "2Consonants/3_a_group/ḍha/5_u"
+        },
+        "6_uu": {
+          "char": "𑀠𑀽",
+          "latin": "ḍhauu",
+          "folder": "2Consonants/3_a_group/ḍha/6_uu"
+        },
+        "7_r": {
+          "char": "𑀠𑀾",
+          "latin": "ḍhar",
+          "folder": "2Consonants/3_a_group/ḍha/7_r"
+        },
+        "8_rr": {
+          "char": "𑀠𑀿",
+          "latin": "ḍharr",
+          "folder": "2Consonants/3_a_group/ḍha/8_rr"
+        },
+        "9_l": {
+          "char": "𑀠𑁀",
+          "latin": "ḍhal",
+          "folder": "2Consonants/3_a_group/ḍha/9_l"
+        },
+        "10_ll": {
+          "char": "𑀠𑁁",
+          "latin": "ḍhall",
+          "folder": "2Consonants/3_a_group/ḍha/10_ll"
+        },
+        "11_e": {
+          "char": "𑀠𑁂",
+          "latin": "ḍhae",
+          "folder": "2Consonants/3_a_group/ḍha/11_e"
+        },
+        "12_ai": {
+          "char": "𑀠𑁃",
+          "latin": "ḍhaai",
+          "folder": "2Consonants/3_a_group/ḍha/12_ai"
+        },
+        "13_o": {
+          "char": "𑀠𑁄",
+          "latin": "ḍhao",
+          "folder": "2Consonants/3_a_group/ḍha/13_o"
+        },
+        "14_au": {
+          "char": "𑀠𑁅",
+          "latin": "ḍhaau",
+          "folder": "2Consonants/3_a_group/ḍha/14_au"
+        }
+      },
+      "ṇa": {
+        "1_base": {
+          "char": "𑀡",
+          "latin": "ṇa",
+          "folder": "2Consonants/3_a_group/ṇa/1_base"
+        },
+        "2_aa": {
+          "char": "𑀡𑀸",
+          "latin": "ṇaaa",
+          "folder": "2Consonants/3_a_group/ṇa/2_aa"
+        },
+        "3_i": {
+          "char": "𑀡𑀺",
+          "latin": "ṇai",
+          "folder": "2Consonants/3_a_group/ṇa/3_i"
+        },
+        "4_ii": {
+          "char": "𑀡𑀻",
+          "latin": "ṇaii",
+          "folder": "2Consonants/3_a_group/ṇa/4_ii"
+        },
+        "5_u": {
+          "char": "𑀡𑀼",
+          "latin": "ṇau",
+          "folder": "2Consonants/3_a_group/ṇa/5_u"
+        },
+        "6_uu": {
+          "char": "𑀡𑀽",
+          "latin": "ṇauu",
+          "folder": "2Consonants/3_a_group/ṇa/6_uu"
+        },
+        "7_r": {
+          "char": "𑀡𑀾",
+          "latin": "ṇar",
+          "folder": "2Consonants/3_a_group/ṇa/7_r"
+        },
+        "8_rr": {
+          "char": "𑀡𑀿",
+          "latin": "ṇarr",
+          "folder": "2Consonants/3_a_group/ṇa/8_rr"
+        },
+        "9_l": {
+          "char": "𑀡𑁀",
+          "latin": "ṇal",
+          "folder": "2Consonants/3_a_group/ṇa/9_l"
+        },
+        "10_ll": {
+          "char": "𑀡𑁁",
+          "latin": "ṇall",
+          "folder": "2Consonants/3_a_group/ṇa/10_ll"
+        },
+        "11_e": {
+          "char": "𑀡𑁂",
+          "latin": "ṇae",
+          "folder": "2Consonants/3_a_group/ṇa/11_e"
+        },
+        "12_ai": {
+          "char": "𑀡𑁃",
+          "latin": "ṇaai",
+          "folder": "2Consonants/3_a_group/ṇa/12_ai"
+        },
+        "13_o": {
+          "char": "𑀡𑁄",
+          "latin": "ṇao",
+          "folder": "2Consonants/3_a_group/ṇa/13_o"
+        },
+        "14_au": {
+          "char": "𑀡𑁅",
+          "latin": "ṇaau",
+          "folder": "2Consonants/3_a_group/ṇa/14_au"
+        }
+      }
+    },
+    "4_Ta_group": {
+      "ta": {
+        "1_base": {
+          "char": "𑀢",
+          "latin": "ta",
+          "folder": "2Consonants/4_Ta_group/ta/1_base"
+        },
+        "2_aa": {
+          "char": "𑀢𑀸",
+          "latin": "taaa",
+          "folder": "2Consonants/4_Ta_group/ta/2_aa"
+        },
+        "3_i": {
+          "char": "𑀢𑀺",
+          "latin": "tai",
+          "folder": "2Consonants/4_Ta_group/ta/3_i"
+        },
+        "4_ii": {
+          "char": "𑀢𑀻",
+          "latin": "taii",
+          "folder": "2Consonants/4_Ta_group/ta/4_ii"
+        },
+        "5_u": {
+          "char": "𑀢𑀼",
+          "latin": "tau",
+          "folder": "2Consonants/4_Ta_group/ta/5_u"
+        },
+        "6_uu": {
+          "char": "𑀢𑀽",
+          "latin": "tauu",
+          "folder": "2Consonants/4_Ta_group/ta/6_uu"
+        },
+        "7_r": {
+          "char": "𑀢𑀾",
+          "latin": "tar",
+          "folder": "2Consonants/4_Ta_group/ta/7_r"
+        },
+        "8_rr": {
+          "char": "𑀢𑀿",
+          "latin": "tarr",
+          "folder": "2Consonants/4_Ta_group/ta/8_rr"
+        },
+        "9_l": {
+          "char": "𑀢𑁀",
+          "latin": "tal",
+          "folder": "2Consonants/4_Ta_group/ta/9_l"
+        },
+        "10_ll": {
+          "char": "𑀢𑁁",
+          "latin": "tall",
+          "folder": "2Consonants/4_Ta_group/ta/10_ll"
+        },
+        "11_e": {
+          "char": "𑀢𑁂",
+          "latin": "tae",
+          "folder": "2Consonants/4_Ta_group/ta/11_e"
+        },
+        "12_ai": {
+          "char": "𑀢𑁃",
+          "latin": "taai",
+          "folder": "2Consonants/4_Ta_group/ta/12_ai"
+        },
+        "13_o": {
+          "char": "𑀢𑁄",
+          "latin": "tao",
+          "folder": "2Consonants/4_Ta_group/ta/13_o"
+        },
+        "14_au": {
+          "char": "𑀢𑁅",
+          "latin": "taau",
+          "folder": "2Consonants/4_Ta_group/ta/14_au"
+        }
+      },
+      "tha": {
+        "1_base": {
+          "char": "𑀣",
+          "latin": "tha",
+          "folder": "2Consonants/4_Ta_group/tha/1_base"
+        },
+        "2_aa": {
+          "char": "𑀣𑀸",
+          "latin": "thaaa",
+          "folder": "2Consonants/4_Ta_group/tha/2_aa"
+        },
+        "3_i": {
+          "char": "𑀣𑀺",
+          "latin": "thai",
+          "folder": "2Consonants/4_Ta_group/tha/3_i"
+        },
+        "4_ii": {
+          "char": "𑀣𑀻",
+          "latin": "thaii",
+          "folder": "2Consonants/4_Ta_group/tha/4_ii"
+        },
+        "5_u": {
+          "char": "𑀣𑀼",
+          "latin": "thau",
+          "folder": "2Consonants/4_Ta_group/tha/5_u"
+        },
+        "6_uu": {
+          "char": "𑀣𑀽",
+          "latin": "thauu",
+          "folder": "2Consonants/4_Ta_group/tha/6_uu"
+        },
+        "7_r": {
+          "char": "𑀣𑀾",
+          "latin": "thar",
+          "folder": "2Consonants/4_Ta_group/tha/7_r"
+        },
+        "8_rr": {
+          "char": "𑀣𑀿",
+          "latin": "tharr",
+          "folder": "2Consonants/4_Ta_group/tha/8_rr"
+        },
+        "9_l": {
+          "char": "𑀣𑁀",
+          "latin": "thal",
+          "folder": "2Consonants/4_Ta_group/tha/9_l"
+        },
+        "10_ll": {
+          "char": "𑀣𑁁",
+          "latin": "thall",
+          "folder": "2Consonants/4_Ta_group/tha/10_ll"
+        },
+        "11_e": {
+          "char": "𑀣𑁂",
+          "latin": "thae",
+          "folder": "2Consonants/4_Ta_group/tha/11_e"
+        },
+        "12_ai": {
+          "char": "𑀣𑁃",
+          "latin": "thaai",
+          "folder": "2Consonants/4_Ta_group/tha/12_ai"
+        },
+        "13_o": {
+          "char": "𑀣𑁄",
+          "latin": "thao",
+          "folder": "2Consonants/4_Ta_group/tha/13_o"
+        },
+        "14_au": {
+          "char": "𑀣𑁅",
+          "latin": "thaau",
+          "folder": "2Consonants/4_Ta_group/tha/14_au"
+        }
+      },
+      "da": {
+        "1_base": {
+          "char": "𑀤",
+          "latin": "da",
+          "folder": "2Consonants/4_Ta_group/da/1_base"
+        },
+        "2_aa": {
+          "char": "𑀤𑀸",
+          "latin": "daaa",
+          "folder": "2Consonants/4_Ta_group/da/2_aa"
+        },
+        "3_i": {
+          "char": "𑀤𑀺",
+          "latin": "dai",
+          "folder": "2Consonants/4_Ta_group/da/3_i"
+        },
+        "4_ii": {
+          "char": "𑀤𑀻",
+          "latin": "daii",
+          "folder": "2Consonants/4_Ta_group/da/4_ii"
+        },
+        "5_u": {
+          "char": "𑀤𑀼",
+          "latin": "dau",
+          "folder": "2Consonants/4_Ta_group/da/5_u"
+        },
+        "6_uu": {
+          "char": "𑀤𑀽",
+          "latin": "dauu",
+          "folder": "2Consonants/4_Ta_group/da/6_uu"
+        },
+        "7_r": {
+          "char": "𑀤𑀾",
+          "latin": "dar",
+          "folder": "2Consonants/4_Ta_group/da/7_r"
+        },
+        "8_rr": {
+          "char": "𑀤𑀿",
+          "latin": "darr",
+          "folder": "2Consonants/4_Ta_group/da/8_rr"
+        },
+        "9_l": {
+          "char": "𑀤𑁀",
+          "latin": "dal",
+          "folder": "2Consonants/4_Ta_group/da/9_l"
+        },
+        "10_ll": {
+          "char": "𑀤𑁁",
+          "latin": "dall",
+          "folder": "2Consonants/4_Ta_group/da/10_ll"
+        },
+        "11_e": {
+          "char": "𑀤𑁂",
+          "latin": "dae",
+          "folder": "2Consonants/4_Ta_group/da/11_e"
+        },
+        "12_ai": {
+          "char": "𑀤𑁃",
+          "latin": "daai",
+          "folder": "2Consonants/4_Ta_group/da/12_ai"
+        },
+        "13_o": {
+          "char": "𑀤𑁄",
+          "latin": "dao",
+          "folder": "2Consonants/4_Ta_group/da/13_o"
+        },
+        "14_au": {
+          "char": "𑀤𑁅",
+          "latin": "daau",
+          "folder": "2Consonants/4_Ta_group/da/14_au"
+        }
+      },
+      "dha": {
+        "1_base": {
+          "char": "𑀥",
+          "latin": "dha",
+          "folder": "2Consonants/4_Ta_group/dha/1_base"
+        },
+        "2_aa": {
+          "char": "𑀥𑀸",
+          "latin": "dhaaa",
+          "folder": "2Consonants/4_Ta_group/dha/2_aa"
+        },
+        "3_i": {
+          "char": "𑀥𑀺",
+          "latin": "dhai",
+          "folder": "2Consonants/4_Ta_group/dha/3_i"
+        },
+        "4_ii": {
+          "char": "𑀥𑀻",
+          "latin": "dhaii",
+          "folder": "2Consonants/4_Ta_group/dha/4_ii"
+        },
+        "5_u": {
+          "char": "𑀥𑀼",
+          "latin": "dhau",
+          "folder": "2Consonants/4_Ta_group/dha/5_u"
+        },
+        "6_uu": {
+          "char": "𑀥𑀽",
+          "latin": "dhauu",
+          "folder": "2Consonants/4_Ta_group/dha/6_uu"
+        },
+        "7_r": {
+          "char": "𑀥𑀾",
+          "latin": "dhar",
+          "folder": "2Consonants/4_Ta_group/dha/7_r"
+        },
+        "8_rr": {
+          "char": "𑀥𑀿",
+          "latin": "dharr",
+          "folder": "2Consonants/4_Ta_group/dha/8_rr"
+        },
+        "9_l": {
+          "char": "𑀥𑁀",
+          "latin": "dhal",
+          "folder": "2Consonants/4_Ta_group/dha/9_l"
+        },
+        "10_ll": {
+          "char": "𑀥𑁁",
+          "latin": "dhall",
+          "folder": "2Consonants/4_Ta_group/dha/10_ll"
+        },
+        "11_e": {
+          "char": "𑀥𑁂",
+          "latin": "dhae",
+          "folder": "2Consonants/4_Ta_group/dha/11_e"
+        },
+        "12_ai": {
+          "char": "𑀥𑁃",
+          "latin": "dhaai",
+          "folder": "2Consonants/4_Ta_group/dha/12_ai"
+        },
+        "13_o": {
+          "char": "𑀥𑁄",
+          "latin": "dhao",
+          "folder": "2Consonants/4_Ta_group/dha/13_o"
+        },
+        "14_au": {
+          "char": "𑀥𑁅",
+          "latin": "dhaau",
+          "folder": "2Consonants/4_Ta_group/dha/14_au"
+        }
+      },
+      "na": {
+        "1_base": {
+          "char": "𑀦",
+          "latin": "na",
+          "folder": "2Consonants/4_Ta_group/na/1_base"
+        },
+        "2_aa": {
+          "char": "𑀦𑀸",
+          "latin": "naaa",
+          "folder": "2Consonants/4_Ta_group/na/2_aa"
+        },
+        "3_i": {
+          "char": "𑀦𑀺",
+          "latin": "nai",
+          "folder": "2Consonants/4_Ta_group/na/3_i"
+        },
+        "4_ii": {
+          "char": "𑀦𑀻",
+          "latin": "naii",
+          "folder": "2Consonants/4_Ta_group/na/4_ii"
+        },
+        "5_u": {
+          "char": "𑀦𑀼",
+          "latin": "nau",
+          "folder": "2Consonants/4_Ta_group/na/5_u"
+        },
+        "6_uu": {
+          "char": "𑀦𑀽",
+          "latin": "nauu",
+          "folder": "2Consonants/4_Ta_group/na/6_uu"
+        },
+        "7_r": {
+          "char": "𑀦𑀾",
+          "latin": "nar",
+          "folder": "2Consonants/4_Ta_group/na/7_r"
+        },
+        "8_rr": {
+          "char": "𑀦𑀿",
+          "latin": "narr",
+          "folder": "2Consonants/4_Ta_group/na/8_rr"
+        },
+        "9_l": {
+          "char": "𑀦𑁀",
+          "latin": "nal",
+          "folder": "2Consonants/4_Ta_group/na/9_l"
+        },
+        "10_ll": {
+          "char": "𑀦𑁁",
+          "latin": "nall",
+          "folder": "2Consonants/4_Ta_group/na/10_ll"
+        },
+        "11_e": {
+          "char": "𑀦𑁂",
+          "latin": "nae",
+          "folder": "2Consonants/4_Ta_group/na/11_e"
+        },
+        "12_ai": {
+          "char": "𑀦𑁃",
+          "latin": "naai",
+          "folder": "2Consonants/4_Ta_group/na/12_ai"
+        },
+        "13_o": {
+          "char": "𑀦𑁄",
+          "latin": "nao",
+          "folder": "2Consonants/4_Ta_group/na/13_o"
+        },
+        "14_au": {
+          "char": "𑀦𑁅",
+          "latin": "naau",
+          "folder": "2Consonants/4_Ta_group/na/14_au"
+        }
+      }
+    },
+    "5_Pa_group": {
+      "pa": {
+        "1_base": {
+          "char": "𑀧",
+          "latin": "pa",
+          "folder": "2Consonants/5_Pa_group/pa/1_base"
+        },
+        "2_aa": {
+          "char": "𑀧𑀸",
+          "latin": "paaa",
+          "folder": "2Consonants/5_Pa_group/pa/2_aa"
+        },
+        "3_i": {
+          "char": "𑀧𑀺",
+          "latin": "pai",
+          "folder": "2Consonants/5_Pa_group/pa/3_i"
+        },
+        "4_ii": {
+          "char": "𑀧𑀻",
+          "latin": "paii",
+          "folder": "2Consonants/5_Pa_group/pa/4_ii"
+        },
+        "5_u": {
+          "char": "𑀧𑀼",
+          "latin": "pau",
+          "folder": "2Consonants/5_Pa_group/pa/5_u"
+        },
+        "6_uu": {
+          "char": "𑀧𑀽",
+          "latin": "pauu",
+          "folder": "2Consonants/5_Pa_group/pa/6_uu"
+        },
+        "7_r": {
+          "char": "𑀧𑀾",
+          "latin": "par",
+          "folder": "2Consonants/5_Pa_group/pa/7_r"
+        },
+        "8_rr": {
+          "char": "𑀧𑀿",
+          "latin": "parr",
+          "folder": "2Consonants/5_Pa_group/pa/8_rr"
+        },
+        "9_l": {
+          "char": "𑀧𑁀",
+          "latin": "pal",
+          "folder": "2Consonants/5_Pa_group/pa/9_l"
+        },
+        "10_ll": {
+          "char": "𑀧𑁁",
+          "latin": "pall",
+          "folder": "2Consonants/5_Pa_group/pa/10_ll"
+        },
+        "11_e": {
+          "char": "𑀧𑁂",
+          "latin": "pae",
+          "folder": "2Consonants/5_Pa_group/pa/11_e"
+        },
+        "12_ai": {
+          "char": "𑀧𑁃",
+          "latin": "paai",
+          "folder": "2Consonants/5_Pa_group/pa/12_ai"
+        },
+        "13_o": {
+          "char": "𑀧𑁄",
+          "latin": "pao",
+          "folder": "2Consonants/5_Pa_group/pa/13_o"
+        },
+        "14_au": {
+          "char": "𑀧𑁅",
+          "latin": "paau",
+          "folder": "2Consonants/5_Pa_group/pa/14_au"
+        }
+      },
+      "pha": {
+        "1_base": {
+          "char": "𑀨",
+          "latin": "pha",
+          "folder": "2Consonants/5_Pa_group/pha/1_base"
+        },
+        "2_aa": {
+          "char": "𑀨𑀸",
+          "latin": "phaaa",
+          "folder": "2Consonants/5_Pa_group/pha/2_aa"
+        },
+        "3_i": {
+          "char": "𑀨𑀺",
+          "latin": "phai",
+          "folder": "2Consonants/5_Pa_group/pha/3_i"
+        },
+        "4_ii": {
+          "char": "𑀨𑀻",
+          "latin": "phaii",
+          "folder": "2Consonants/5_Pa_group/pha/4_ii"
+        },
+        "5_u": {
+          "char": "𑀨𑀼",
+          "latin": "phau",
+          "folder": "2Consonants/5_Pa_group/pha/5_u"
+        },
+        "6_uu": {
+          "char": "𑀨𑀽",
+          "latin": "phauu",
+          "folder": "2Consonants/5_Pa_group/pha/6_uu"
+        },
+        "7_r": {
+          "char": "𑀨𑀾",
+          "latin": "phar",
+          "folder": "2Consonants/5_Pa_group/pha/7_r"
+        },
+        "8_rr": {
+          "char": "𑀨𑀿",
+          "latin": "pharr",
+          "folder": "2Consonants/5_Pa_group/pha/8_rr"
+        },
+        "9_l": {
+          "char": "𑀨𑁀",
+          "latin": "phal",
+          "folder": "2Consonants/5_Pa_group/pha/9_l"
+        },
+        "10_ll": {
+          "char": "𑀨𑁁",
+          "latin": "phall",
+          "folder": "2Consonants/5_Pa_group/pha/10_ll"
+        },
+        "11_e": {
+          "char": "𑀨𑁂",
+          "latin": "phae",
+          "folder": "2Consonants/5_Pa_group/pha/11_e"
+        },
+        "12_ai": {
+          "char": "𑀨𑁃",
+          "latin": "phaai",
+          "folder": "2Consonants/5_Pa_group/pha/12_ai"
+        },
+        "13_o": {
+          "char": "𑀨𑁄",
+          "latin": "phao",
+          "folder": "2Consonants/5_Pa_group/pha/13_o"
+        },
+        "14_au": {
+          "char": "𑀨𑁅",
+          "latin": "phaau",
+          "folder": "2Consonants/5_Pa_group/pha/14_au"
+        }
+      },
+      "ba": {
+        "1_base": {
+          "char": "𑀩",
+          "latin": "ba",
+          "folder": "2Consonants/5_Pa_group/ba/1_base"
+        },
+        "2_aa": {
+          "char": "𑀩𑀸",
+          "latin": "baaa",
+          "folder": "2Consonants/5_Pa_group/ba/2_aa"
+        },
+        "3_i": {
+          "char": "𑀩𑀺",
+          "latin": "bai",
+          "folder": "2Consonants/5_Pa_group/ba/3_i"
+        },
+        "4_ii": {
+          "char": "𑀩𑀻",
+          "latin": "baii",
+          "folder": "2Consonants/5_Pa_group/ba/4_ii"
+        },
+        "5_u": {
+          "char": "𑀩𑀼",
+          "latin": "bau",
+          "folder": "2Consonants/5_Pa_group/ba/5_u"
+        },
+        "6_uu": {
+          "char": "𑀩𑀽",
+          "latin": "bauu",
+          "folder": "2Consonants/5_Pa_group/ba/6_uu"
+        },
+        "7_r": {
+          "char": "𑀩𑀾",
+          "latin": "bar",
+          "folder": "2Consonants/5_Pa_group/ba/7_r"
+        },
+        "8_rr": {
+          "char": "𑀩𑀿",
+          "latin": "barr",
+          "folder": "2Consonants/5_Pa_group/ba/8_rr"
+        },
+        "9_l": {
+          "char": "𑀩𑁀",
+          "latin": "bal",
+          "folder": "2Consonants/5_Pa_group/ba/9_l"
+        },
+        "10_ll": {
+          "char": "𑀩𑁁",
+          "latin": "ball",
+          "folder": "2Consonants/5_Pa_group/ba/10_ll"
+        },
+        "11_e": {
+          "char": "𑀩𑁂",
+          "latin": "bae",
+          "folder": "2Consonants/5_Pa_group/ba/11_e"
+        },
+        "12_ai": {
+          "char": "𑀩𑁃",
+          "latin": "baai",
+          "folder": "2Consonants/5_Pa_group/ba/12_ai"
+        },
+        "13_o": {
+          "char": "𑀩𑁄",
+          "latin": "bao",
+          "folder": "2Consonants/5_Pa_group/ba/13_o"
+        },
+        "14_au": {
+          "char": "𑀩𑁅",
+          "latin": "baau",
+          "folder": "2Consonants/5_Pa_group/ba/14_au"
+        }
+      },
+      "bha": {
+        "1_base": {
+          "char": "𑀪",
+          "latin": "bha",
+          "folder": "2Consonants/5_Pa_group/bha/1_base"
+        },
+        "2_aa": {
+          "char": "𑀪𑀸",
+          "latin": "bhaaa",
+          "folder": "2Consonants/5_Pa_group/bha/2_aa"
+        },
+        "3_i": {
+          "char": "𑀪𑀺",
+          "latin": "bhai",
+          "folder": "2Consonants/5_Pa_group/bha/3_i"
+        },
+        "4_ii": {
+          "char": "𑀪𑀻",
+          "latin": "bhaii",
+          "folder": "2Consonants/5_Pa_group/bha/4_ii"
+        },
+        "5_u": {
+          "char": "𑀪𑀼",
+          "latin": "bhau",
+          "folder": "2Consonants/5_Pa_group/bha/5_u"
+        },
+        "6_uu": {
+          "char": "𑀪𑀽",
+          "latin": "bhauu",
+          "folder": "2Consonants/5_Pa_group/bha/6_uu"
+        },
+        "7_r": {
+          "char": "𑀪𑀾",
+          "latin": "bhar",
+          "folder": "2Consonants/5_Pa_group/bha/7_r"
+        },
+        "8_rr": {
+          "char": "𑀪𑀿",
+          "latin": "bharr",
+          "folder": "2Consonants/5_Pa_group/bha/8_rr"
+        },
+        "9_l": {
+          "char": "𑀪𑁀",
+          "latin": "bhal",
+          "folder": "2Consonants/5_Pa_group/bha/9_l"
+        },
+        "10_ll": {
+          "char": "𑀪𑁁",
+          "latin": "bhall",
+          "folder": "2Consonants/5_Pa_group/bha/10_ll"
+        },
+        "11_e": {
+          "char": "𑀪𑁂",
+          "latin": "bhae",
+          "folder": "2Consonants/5_Pa_group/bha/11_e"
+        },
+        "12_ai": {
+          "char": "𑀪𑁃",
+          "latin": "bhaai",
+          "folder": "2Consonants/5_Pa_group/bha/12_ai"
+        },
+        "13_o": {
+          "char": "𑀪𑁄",
+          "latin": "bhao",
+          "folder": "2Consonants/5_Pa_group/bha/13_o"
+        },
+        "14_au": {
+          "char": "𑀪𑁅",
+          "latin": "bhaau",
+          "folder": "2Consonants/5_Pa_group/bha/14_au"
+        }
+      },
+      "ma": {
+        "1_base": {
+          "char": "𑀫",
+          "latin": "ma",
+          "folder": "2Consonants/5_Pa_group/ma/1_base"
+        },
+        "2_aa": {
+          "char": "𑀫𑀸",
+          "latin": "maaa",
+          "folder": "2Consonants/5_Pa_group/ma/2_aa"
+        },
+        "3_i": {
+          "char": "𑀫𑀺",
+          "latin": "mai",
+          "folder": "2Consonants/5_Pa_group/ma/3_i"
+        },
+        "4_ii": {
+          "char": "𑀫𑀻",
+          "latin": "maii",
+          "folder": "2Consonants/5_Pa_group/ma/4_ii"
+        },
+        "5_u": {
+          "char": "𑀫𑀼",
+          "latin": "mau",
+          "folder": "2Consonants/5_Pa_group/ma/5_u"
+        },
+        "6_uu": {
+          "char": "𑀫𑀽",
+          "latin": "mauu",
+          "folder": "2Consonants/5_Pa_group/ma/6_uu"
+        },
+        "7_r": {
+          "char": "𑀫𑀾",
+          "latin": "mar",
+          "folder": "2Consonants/5_Pa_group/ma/7_r"
+        },
+        "8_rr": {
+          "char": "𑀫𑀿",
+          "latin": "marr",
+          "folder": "2Consonants/5_Pa_group/ma/8_rr"
+        },
+        "9_l": {
+          "char": "𑀫𑁀",
+          "latin": "mal",
+          "folder": "2Consonants/5_Pa_group/ma/9_l"
+        },
+        "10_ll": {
+          "char": "𑀫𑁁",
+          "latin": "mall",
+          "folder": "2Consonants/5_Pa_group/ma/10_ll"
+        },
+        "11_e": {
+          "char": "𑀫𑁂",
+          "latin": "mae",
+          "folder": "2Consonants/5_Pa_group/ma/11_e"
+        },
+        "12_ai": {
+          "char": "𑀫𑁃",
+          "latin": "maai",
+          "folder": "2Consonants/5_Pa_group/ma/12_ai"
+        },
+        "13_o": {
+          "char": "𑀫𑁄",
+          "latin": "mao",
+          "folder": "2Consonants/5_Pa_group/ma/13_o"
+        },
+        "14_au": {
+          "char": "𑀫𑁅",
+          "latin": "maau",
+          "folder": "2Consonants/5_Pa_group/ma/14_au"
+        }
+      },
+      "ya": {
+        "1_base": {
+          "char": "𑀬",
+          "latin": "ya",
+          "folder": "2Consonants/5_Pa_group/ya/1_base"
+        },
+        "2_aa": {
+          "char": "𑀬𑀸",
+          "latin": "yaaa",
+          "folder": "2Consonants/5_Pa_group/ya/2_aa"
+        },
+        "3_i": {
+          "char": "𑀬𑀺",
+          "latin": "yai",
+          "folder": "2Consonants/5_Pa_group/ya/3_i"
+        },
+        "4_ii": {
+          "char": "𑀬𑀻",
+          "latin": "yaii",
+          "folder": "2Consonants/5_Pa_group/ya/4_ii"
+        },
+        "5_u": {
+          "char": "𑀬𑀼",
+          "latin": "yau",
+          "folder": "2Consonants/5_Pa_group/ya/5_u"
+        },
+        "6_uu": {
+          "char": "𑀬𑀽",
+          "latin": "yauu",
+          "folder": "2Consonants/5_Pa_group/ya/6_uu"
+        },
+        "7_r": {
+          "char": "𑀬𑀾",
+          "latin": "yar",
+          "folder": "2Consonants/5_Pa_group/ya/7_r"
+        },
+        "8_rr": {
+          "char": "𑀬𑀿",
+          "latin": "yarr",
+          "folder": "2Consonants/5_Pa_group/ya/8_rr"
+        },
+        "9_l": {
+          "char": "𑀬𑁀",
+          "latin": "yal",
+          "folder": "2Consonants/5_Pa_group/ya/9_l"
+        },
+        "10_ll": {
+          "char": "𑀬𑁁",
+          "latin": "yall",
+          "folder": "2Consonants/5_Pa_group/ya/10_ll"
+        },
+        "11_e": {
+          "char": "𑀬𑁂",
+          "latin": "yae",
+          "folder": "2Consonants/5_Pa_group/ya/11_e"
+        },
+        "12_ai": {
+          "char": "𑀬𑁃",
+          "latin": "yaai",
+          "folder": "2Consonants/5_Pa_group/ya/12_ai"
+        },
+        "13_o": {
+          "char": "𑀬𑁄",
+          "latin": "yao",
+          "folder": "2Consonants/5_Pa_group/ya/13_o"
+        },
+        "14_au": {
+          "char": "𑀬𑁅",
+          "latin": "yaau",
+          "folder": "2Consonants/5_Pa_group/ya/14_au"
+        }
+      },
+      "ra": {
+        "1_base": {
+          "char": "𑀭",
+          "latin": "ra",
+          "folder": "2Consonants/5_Pa_group/ra/1_base"
+        },
+        "2_aa": {
+          "char": "𑀭𑀸",
+          "latin": "raaa",
+          "folder": "2Consonants/5_Pa_group/ra/2_aa"
+        },
+        "3_i": {
+          "char": "𑀭𑀺",
+          "latin": "rai",
+          "folder": "2Consonants/5_Pa_group/ra/3_i"
+        },
+        "4_ii": {
+          "char": "𑀭𑀻",
+          "latin": "raii",
+          "folder": "2Consonants/5_Pa_group/ra/4_ii"
+        },
+        "5_u": {
+          "char": "𑀭𑀼",
+          "latin": "rau",
+          "folder": "2Consonants/5_Pa_group/ra/5_u"
+        },
+        "6_uu": {
+          "char": "𑀭𑀽",
+          "latin": "rauu",
+          "folder": "2Consonants/5_Pa_group/ra/6_uu"
+        },
+        "7_r": {
+          "char": "𑀭𑀾",
+          "latin": "rar",
+          "folder": "2Consonants/5_Pa_group/ra/7_r"
+        },
+        "8_rr": {
+          "char": "𑀭𑀿",
+          "latin": "rarr",
+          "folder": "2Consonants/5_Pa_group/ra/8_rr"
+        },
+        "9_l": {
+          "char": "𑀭𑁀",
+          "latin": "ral",
+          "folder": "2Consonants/5_Pa_group/ra/9_l"
+        },
+        "10_ll": {
+          "char": "𑀭𑁁",
+          "latin": "rall",
+          "folder": "2Consonants/5_Pa_group/ra/10_ll"
+        },
+        "11_e": {
+          "char": "𑀭𑁂",
+          "latin": "rae",
+          "folder": "2Consonants/5_Pa_group/ra/11_e"
+        },
+        "12_ai": {
+          "char": "𑀭𑁃",
+          "latin": "raai",
+          "folder": "2Consonants/5_Pa_group/ra/12_ai"
+        },
+        "13_o": {
+          "char": "𑀭𑁄",
+          "latin": "rao",
+          "folder": "2Consonants/5_Pa_group/ra/13_o"
+        },
+        "14_au": {
+          "char": "𑀭𑁅",
+          "latin": "raau",
+          "folder": "2Consonants/5_Pa_group/ra/14_au"
+        }
+      },
+      "la": {
+        "1_base": {
+          "char": "𑀮",
+          "latin": "la",
+          "folder": "2Consonants/5_Pa_group/la/1_base"
+        },
+        "2_aa": {
+          "char": "𑀮𑀸",
+          "latin": "laaa",
+          "folder": "2Consonants/5_Pa_group/la/2_aa"
+        },
+        "3_i": {
+          "char": "𑀮𑀺",
+          "latin": "lai",
+          "folder": "2Consonants/5_Pa_group/la/3_i"
+        },
+        "4_ii": {
+          "char": "𑀮𑀻",
+          "latin": "laii",
+          "folder": "2Consonants/5_Pa_group/la/4_ii"
+        },
+        "5_u": {
+          "char": "𑀮𑀼",
+          "latin": "lau",
+          "folder": "2Consonants/5_Pa_group/la/5_u"
+        },
+        "6_uu": {
+          "char": "𑀮𑀽",
+          "latin": "lauu",
+          "folder": "2Consonants/5_Pa_group/la/6_uu"
+        },
+        "7_r": {
+          "char": "𑀮𑀾",
+          "latin": "lar",
+          "folder": "2Consonants/5_Pa_group/la/7_r"
+        },
+        "8_rr": {
+          "char": "𑀮𑀿",
+          "latin": "larr",
+          "folder": "2Consonants/5_Pa_group/la/8_rr"
+        },
+        "9_l": {
+          "char": "𑀮𑁀",
+          "latin": "lal",
+          "folder": "2Consonants/5_Pa_group/la/9_l"
+        },
+        "10_ll": {
+          "char": "𑀮𑁁",
+          "latin": "lall",
+          "folder": "2Consonants/5_Pa_group/la/10_ll"
+        },
+        "11_e": {
+          "char": "𑀮𑁂",
+          "latin": "lae",
+          "folder": "2Consonants/5_Pa_group/la/11_e"
+        },
+        "12_ai": {
+          "char": "𑀮𑁃",
+          "latin": "laai",
+          "folder": "2Consonants/5_Pa_group/la/12_ai"
+        },
+        "13_o": {
+          "char": "𑀮𑁄",
+          "latin": "lao",
+          "folder": "2Consonants/5_Pa_group/la/13_o"
+        },
+        "14_au": {
+          "char": "𑀮𑁅",
+          "latin": "laau",
+          "folder": "2Consonants/5_Pa_group/la/14_au"
+        }
+      },
+      "va": {
+        "1_base": {
+          "char": "𑀯",
+          "latin": "va",
+          "folder": "2Consonants/5_Pa_group/va/1_base"
+        },
+        "2_aa": {
+          "char": "𑀯𑀸",
+          "latin": "vaaa",
+          "folder": "2Consonants/5_Pa_group/va/2_aa"
+        },
+        "3_i": {
+          "char": "𑀯𑀺",
+          "latin": "vai",
+          "folder": "2Consonants/5_Pa_group/va/3_i"
+        },
+        "4_ii": {
+          "char": "𑀯𑀻",
+          "latin": "vaii",
+          "folder": "2Consonants/5_Pa_group/va/4_ii"
+        },
+        "5_u": {
+          "char": "𑀯𑀼",
+          "latin": "vau",
+          "folder": "2Consonants/5_Pa_group/va/5_u"
+        },
+        "6_uu": {
+          "char": "𑀯𑀽",
+          "latin": "vauu",
+          "folder": "2Consonants/5_Pa_group/va/6_uu"
+        },
+        "7_r": {
+          "char": "𑀯𑀾",
+          "latin": "var",
+          "folder": "2Consonants/5_Pa_group/va/7_r"
+        },
+        "8_rr": {
+          "char": "𑀯𑀿",
+          "latin": "varr",
+          "folder": "2Consonants/5_Pa_group/va/8_rr"
+        },
+        "9_l": {
+          "char": "𑀯𑁀",
+          "latin": "val",
+          "folder": "2Consonants/5_Pa_group/va/9_l"
+        },
+        "10_ll": {
+          "char": "𑀯𑁁",
+          "latin": "vall",
+          "folder": "2Consonants/5_Pa_group/va/10_ll"
+        },
+        "11_e": {
+          "char": "𑀯𑁂",
+          "latin": "vae",
+          "folder": "2Consonants/5_Pa_group/va/11_e"
+        },
+        "12_ai": {
+          "char": "𑀯𑁃",
+          "latin": "vaai",
+          "folder": "2Consonants/5_Pa_group/va/12_ai"
+        },
+        "13_o": {
+          "char": "𑀯𑁄",
+          "latin": "vao",
+          "folder": "2Consonants/5_Pa_group/va/13_o"
+        },
+        "14_au": {
+          "char": "𑀯𑁅",
+          "latin": "vaau",
+          "folder": "2Consonants/5_Pa_group/va/14_au"
+        }
+      },
+      "śa": {
+        "1_base": {
+          "char": "𑀰",
+          "latin": "śa",
+          "folder": "2Consonants/5_Pa_group/śa/1_base"
+        },
+        "2_aa": {
+          "char": "𑀰𑀸",
+          "latin": "śaaa",
+          "folder": "2Consonants/5_Pa_group/śa/2_aa"
+        },
+        "3_i": {
+          "char": "𑀰𑀺",
+          "latin": "śai",
+          "folder": "2Consonants/5_Pa_group/śa/3_i"
+        },
+        "4_ii": {
+          "char": "𑀰𑀻",
+          "latin": "śaii",
+          "folder": "2Consonants/5_Pa_group/śa/4_ii"
+        },
+        "5_u": {
+          "char": "𑀰𑀼",
+          "latin": "śau",
+          "folder": "2Consonants/5_Pa_group/śa/5_u"
+        },
+        "6_uu": {
+          "char": "𑀰𑀽",
+          "latin": "śauu",
+          "folder": "2Consonants/5_Pa_group/śa/6_uu"
+        },
+        "7_r": {
+          "char": "𑀰𑀾",
+          "latin": "śar",
+          "folder": "2Consonants/5_Pa_group/śa/7_r"
+        },
+        "8_rr": {
+          "char": "𑀰𑀿",
+          "latin": "śarr",
+          "folder": "2Consonants/5_Pa_group/śa/8_rr"
+        },
+        "9_l": {
+          "char": "𑀰𑁀",
+          "latin": "śal",
+          "folder": "2Consonants/5_Pa_group/śa/9_l"
+        },
+        "10_ll": {
+          "char": "𑀰𑁁",
+          "latin": "śall",
+          "folder": "2Consonants/5_Pa_group/śa/10_ll"
+        },
+        "11_e": {
+          "char": "𑀰𑁂",
+          "latin": "śae",
+          "folder": "2Consonants/5_Pa_group/śa/11_e"
+        },
+        "12_ai": {
+          "char": "𑀰𑁃",
+          "latin": "śaai",
+          "folder": "2Consonants/5_Pa_group/śa/12_ai"
+        },
+        "13_o": {
+          "char": "𑀰𑁄",
+          "latin": "śao",
+          "folder": "2Consonants/5_Pa_group/śa/13_o"
+        },
+        "14_au": {
+          "char": "𑀰𑁅",
+          "latin": "śaau",
+          "folder": "2Consonants/5_Pa_group/śa/14_au"
+        }
+      },
+      "ṣa": {
+        "1_base": {
+          "char": "𑀱",
+          "latin": "ṣa",
+          "folder": "2Consonants/5_Pa_group/ṣa/1_base"
+        },
+        "2_aa": {
+          "char": "𑀱𑀸",
+          "latin": "ṣaaa",
+          "folder": "2Consonants/5_Pa_group/ṣa/2_aa"
+        },
+        "3_i": {
+          "char": "𑀱𑀺",
+          "latin": "ṣai",
+          "folder": "2Consonants/5_Pa_group/ṣa/3_i"
+        },
+        "4_ii": {
+          "char": "𑀱𑀻",
+          "latin": "ṣaii",
+          "folder": "2Consonants/5_Pa_group/ṣa/4_ii"
+        },
+        "5_u": {
+          "char": "𑀱𑀼",
+          "latin": "ṣau",
+          "folder": "2Consonants/5_Pa_group/ṣa/5_u"
+        },
+        "6_uu": {
+          "char": "𑀱𑀽",
+          "latin": "ṣauu",
+          "folder": "2Consonants/5_Pa_group/ṣa/6_uu"
+        },
+        "7_r": {
+          "char": "𑀱𑀾",
+          "latin": "ṣar",
+          "folder": "2Consonants/5_Pa_group/ṣa/7_r"
+        },
+        "8_rr": {
+          "char": "𑀱𑀿",
+          "latin": "ṣarr",
+          "folder": "2Consonants/5_Pa_group/ṣa/8_rr"
+        },
+        "9_l": {
+          "char": "𑀱𑁀",
+          "latin": "ṣal",
+          "folder": "2Consonants/5_Pa_group/ṣa/9_l"
+        },
+        "10_ll": {
+          "char": "𑀱𑁁",
+          "latin": "ṣall",
+          "folder": "2Consonants/5_Pa_group/ṣa/10_ll"
+        },
+        "11_e": {
+          "char": "𑀱𑁂",
+          "latin": "ṣae",
+          "folder": "2Consonants/5_Pa_group/ṣa/11_e"
+        },
+        "12_ai": {
+          "char": "𑀱𑁃",
+          "latin": "ṣaai",
+          "folder": "2Consonants/5_Pa_group/ṣa/12_ai"
+        },
+        "13_o": {
+          "char": "𑀱𑁄",
+          "latin": "ṣao",
+          "folder": "2Consonants/5_Pa_group/ṣa/13_o"
+        },
+        "14_au": {
+          "char": "𑀱𑁅",
+          "latin": "ṣaau",
+          "folder": "2Consonants/5_Pa_group/ṣa/14_au"
+        }
+      },
+      "sa": {
+        "1_base": {
+          "char": "𑀲",
+          "latin": "sa",
+          "folder": "2Consonants/5_Pa_group/sa/1_base"
+        },
+        "2_aa": {
+          "char": "𑀲𑀸",
+          "latin": "saaa",
+          "folder": "2Consonants/5_Pa_group/sa/2_aa"
+        },
+        "3_i": {
+          "char": "𑀲𑀺",
+          "latin": "sai",
+          "folder": "2Consonants/5_Pa_group/sa/3_i"
+        },
+        "4_ii": {
+          "char": "𑀲𑀻",
+          "latin": "saii",
+          "folder": "2Consonants/5_Pa_group/sa/4_ii"
+        },
+        "5_u": {
+          "char": "𑀲𑀼",
+          "latin": "sau",
+          "folder": "2Consonants/5_Pa_group/sa/5_u"
+        },
+        "6_uu": {
+          "char": "𑀲𑀽",
+          "latin": "sauu",
+          "folder": "2Consonants/5_Pa_group/sa/6_uu"
+        },
+        "7_r": {
+          "char": "𑀲𑀾",
+          "latin": "sar",
+          "folder": "2Consonants/5_Pa_group/sa/7_r"
+        },
+        "8_rr": {
+          "char": "𑀲𑀿",
+          "latin": "sarr",
+          "folder": "2Consonants/5_Pa_group/sa/8_rr"
+        },
+        "9_l": {
+          "char": "𑀲𑁀",
+          "latin": "sal",
+          "folder": "2Consonants/5_Pa_group/sa/9_l"
+        },
+        "10_ll": {
+          "char": "𑀲𑁁",
+          "latin": "sall",
+          "folder": "2Consonants/5_Pa_group/sa/10_ll"
+        },
+        "11_e": {
+          "char": "𑀲𑁂",
+          "latin": "sae",
+          "folder": "2Consonants/5_Pa_group/sa/11_e"
+        },
+        "12_ai": {
+          "char": "𑀲𑁃",
+          "latin": "saai",
+          "folder": "2Consonants/5_Pa_group/sa/12_ai"
+        },
+        "13_o": {
+          "char": "𑀲𑁄",
+          "latin": "sao",
+          "folder": "2Consonants/5_Pa_group/sa/13_o"
+        },
+        "14_au": {
+          "char": "𑀲𑁅",
+          "latin": "saau",
+          "folder": "2Consonants/5_Pa_group/sa/14_au"
+        }
+      },
+      "ha": {
+        "1_base": {
+          "char": "𑀳",
+          "latin": "ha",
+          "folder": "2Consonants/5_Pa_group/ha/1_base"
+        },
+        "2_aa": {
+          "char": "𑀳𑀸",
+          "latin": "haaa",
+          "folder": "2Consonants/5_Pa_group/ha/2_aa"
+        },
+        "3_i": {
+          "char": "𑀳𑀺",
+          "latin": "hai",
+          "folder": "2Consonants/5_Pa_group/ha/3_i"
+        },
+        "4_ii": {
+          "char": "𑀳𑀻",
+          "latin": "haii",
+          "folder": "2Consonants/5_Pa_group/ha/4_ii"
+        },
+        "5_u": {
+          "char": "𑀳𑀼",
+          "latin": "hau",
+          "folder": "2Consonants/5_Pa_group/ha/5_u"
+        },
+        "6_uu": {
+          "char": "𑀳𑀽",
+          "latin": "hauu",
+          "folder": "2Consonants/5_Pa_group/ha/6_uu"
+        },
+        "7_r": {
+          "char": "𑀳𑀾",
+          "latin": "har",
+          "folder": "2Consonants/5_Pa_group/ha/7_r"
+        },
+        "8_rr": {
+          "char": "𑀳𑀿",
+          "latin": "harr",
+          "folder": "2Consonants/5_Pa_group/ha/8_rr"
+        },
+        "9_l": {
+          "char": "𑀳𑁀",
+          "latin": "hal",
+          "folder": "2Consonants/5_Pa_group/ha/9_l"
+        },
+        "10_ll": {
+          "char": "𑀳𑁁",
+          "latin": "hall",
+          "folder": "2Consonants/5_Pa_group/ha/10_ll"
+        },
+        "11_e": {
+          "char": "𑀳𑁂",
+          "latin": "hae",
+          "folder": "2Consonants/5_Pa_group/ha/11_e"
+        },
+        "12_ai": {
+          "char": "𑀳𑁃",
+          "latin": "haai",
+          "folder": "2Consonants/5_Pa_group/ha/12_ai"
+        },
+        "13_o": {
+          "char": "𑀳𑁄",
+          "latin": "hao",
+          "folder": "2Consonants/5_Pa_group/ha/13_o"
+        },
+        "14_au": {
+          "char": "𑀳𑁅",
+          "latin": "haau",
+          "folder": "2Consonants/5_Pa_group/ha/14_au"
+        }
+      },
+      "ḷa": {
+        "1_base": {
+          "char": "𑀴",
+          "latin": "ḷa",
+          "folder": "2Consonants/5_Pa_group/ḷa/1_base"
+        },
+        "2_aa": {
+          "char": "𑀴𑀸",
+          "latin": "ḷaaa",
+          "folder": "2Consonants/5_Pa_group/ḷa/2_aa"
+        },
+        "3_i": {
+          "char": "𑀴𑀺",
+          "latin": "ḷai",
+          "folder": "2Consonants/5_Pa_group/ḷa/3_i"
+        },
+        "4_ii": {
+          "char": "𑀴𑀻",
+          "latin": "ḷaii",
+          "folder": "2Consonants/5_Pa_group/ḷa/4_ii"
+        },
+        "5_u": {
+          "char": "𑀴𑀼",
+          "latin": "ḷau",
+          "folder": "2Consonants/5_Pa_group/ḷa/5_u"
+        },
+        "6_uu": {
+          "char": "𑀴𑀽",
+          "latin": "ḷauu",
+          "folder": "2Consonants/5_Pa_group/ḷa/6_uu"
+        },
+        "7_r": {
+          "char": "𑀴𑀾",
+          "latin": "ḷar",
+          "folder": "2Consonants/5_Pa_group/ḷa/7_r"
+        },
+        "8_rr": {
+          "char": "𑀴𑀿",
+          "latin": "ḷarr",
+          "folder": "2Consonants/5_Pa_group/ḷa/8_rr"
+        },
+        "9_l": {
+          "char": "𑀴𑁀",
+          "latin": "ḷal",
+          "folder": "2Consonants/5_Pa_group/ḷa/9_l"
+        },
+        "10_ll": {
+          "char": "𑀴𑁁",
+          "latin": "ḷall",
+          "folder": "2Consonants/5_Pa_group/ḷa/10_ll"
+        },
+        "11_e": {
+          "char": "𑀴𑁂",
+          "latin": "ḷae",
+          "folder": "2Consonants/5_Pa_group/ḷa/11_e"
+        },
+        "12_ai": {
+          "char": "𑀴𑁃",
+          "latin": "ḷaai",
+          "folder": "2Consonants/5_Pa_group/ḷa/12_ai"
+        },
+        "13_o": {
+          "char": "𑀴𑁄",
+          "latin": "ḷao",
+          "folder": "2Consonants/5_Pa_group/ḷa/13_o"
+        },
+        "14_au": {
+          "char": "𑀴𑁅",
+          "latin": "ḷaau",
+          "folder": "2Consonants/5_Pa_group/ḷa/14_au"
+        }
+      },
+      "ḻa": {
+        "1_base": {
+          "char": "𑀵",
+          "latin": "ḻa",
+          "folder": "2Consonants/5_Pa_group/ḻa/1_base"
+        },
+        "2_aa": {
+          "char": "𑀵𑀸",
+          "latin": "ḻaaa",
+          "folder": "2Consonants/5_Pa_group/ḻa/2_aa"
+        },
+        "3_i": {
+          "char": "𑀵𑀺",
+          "latin": "ḻai",
+          "folder": "2Consonants/5_Pa_group/ḻa/3_i"
+        },
+        "4_ii": {
+          "char": "𑀵𑀻",
+          "latin": "ḻaii",
+          "folder": "2Consonants/5_Pa_group/ḻa/4_ii"
+        },
+        "5_u": {
+          "char": "𑀵𑀼",
+          "latin": "ḻau",
+          "folder": "2Consonants/5_Pa_group/ḻa/5_u"
+        },
+        "6_uu": {
+          "char": "𑀵𑀽",
+          "latin": "ḻauu",
+          "folder": "2Consonants/5_Pa_group/ḻa/6_uu"
+        },
+        "7_r": {
+          "char": "𑀵𑀾",
+          "latin": "ḻar",
+          "folder": "2Consonants/5_Pa_group/ḻa/7_r"
+        },
+        "8_rr": {
+          "char": "𑀵𑀿",
+          "latin": "ḻarr",
+          "folder": "2Consonants/5_Pa_group/ḻa/8_rr"
+        },
+        "9_l": {
+          "char": "𑀵𑁀",
+          "latin": "ḻal",
+          "folder": "2Consonants/5_Pa_group/ḻa/9_l"
+        },
+        "10_ll": {
+          "char": "𑀵𑁁",
+          "latin": "ḻall",
+          "folder": "2Consonants/5_Pa_group/ḻa/10_ll"
+        },
+        "11_e": {
+          "char": "𑀵𑁂",
+          "latin": "ḻae",
+          "folder": "2Consonants/5_Pa_group/ḻa/11_e"
+        },
+        "12_ai": {
+          "char": "𑀵𑁃",
+          "latin": "ḻaai",
+          "folder": "2Consonants/5_Pa_group/ḻa/12_ai"
+        },
+        "13_o": {
+          "char": "𑀵𑁄",
+          "latin": "ḻao",
+          "folder": "2Consonants/5_Pa_group/ḻa/13_o"
+        },
+        "14_au": {
+          "char": "𑀵𑁅",
+          "latin": "ḻaau",
+          "folder": "2Consonants/5_Pa_group/ḻa/14_au"
+        }
+      },
+      "ṟa": {
+        "1_base": {
+          "char": "𑀶",
+          "latin": "ṟa",
+          "folder": "2Consonants/5_Pa_group/ṟa/1_base"
+        },
+        "2_aa": {
+          "char": "𑀶𑀸",
+          "latin": "ṟaaa",
+          "folder": "2Consonants/5_Pa_group/ṟa/2_aa"
+        },
+        "3_i": {
+          "char": "𑀶𑀺",
+          "latin": "ṟai",
+          "folder": "2Consonants/5_Pa_group/ṟa/3_i"
+        },
+        "4_ii": {
+          "char": "𑀶𑀻",
+          "latin": "ṟaii",
+          "folder": "2Consonants/5_Pa_group/ṟa/4_ii"
+        },
+        "5_u": {
+          "char": "𑀶𑀼",
+          "latin": "ṟau",
+          "folder": "2Consonants/5_Pa_group/ṟa/5_u"
+        },
+        "6_uu": {
+          "char": "𑀶𑀽",
+          "latin": "ṟauu",
+          "folder": "2Consonants/5_Pa_group/ṟa/6_uu"
+        },
+        "7_r": {
+          "char": "𑀶𑀾",
+          "latin": "ṟar",
+          "folder": "2Consonants/5_Pa_group/ṟa/7_r"
+        },
+        "8_rr": {
+          "char": "𑀶𑀿",
+          "latin": "ṟarr",
+          "folder": "2Consonants/5_Pa_group/ṟa/8_rr"
+        },
+        "9_l": {
+          "char": "𑀶𑁀",
+          "latin": "ṟal",
+          "folder": "2Consonants/5_Pa_group/ṟa/9_l"
+        },
+        "10_ll": {
+          "char": "𑀶𑁁",
+          "latin": "ṟall",
+          "folder": "2Consonants/5_Pa_group/ṟa/10_ll"
+        },
+        "11_e": {
+          "char": "𑀶𑁂",
+          "latin": "ṟae",
+          "folder": "2Consonants/5_Pa_group/ṟa/11_e"
+        },
+        "12_ai": {
+          "char": "𑀶𑁃",
+          "latin": "ṟaai",
+          "folder": "2Consonants/5_Pa_group/ṟa/12_ai"
+        },
+        "13_o": {
+          "char": "𑀶𑁄",
+          "latin": "ṟao",
+          "folder": "2Consonants/5_Pa_group/ṟa/13_o"
+        },
+        "14_au": {
+          "char": "𑀶𑁅",
+          "latin": "ṟaau",
+          "folder": "2Consonants/5_Pa_group/ṟa/14_au"
+        }
+      },
+      "ṉa": {
+        "1_base": {
+          "char": "𑀷",
+          "latin": "ṉa",
+          "folder": "2Consonants/5_Pa_group/ṉa/1_base"
+        },
+        "2_aa": {
+          "char": "𑀷𑀸",
+          "latin": "ṉaaa",
+          "folder": "2Consonants/5_Pa_group/ṉa/2_aa"
+        },
+        "3_i": {
+          "char": "𑀷𑀺",
+          "latin": "ṉai",
+          "folder": "2Consonants/5_Pa_group/ṉa/3_i"
+        },
+        "4_ii": {
+          "char": "𑀷𑀻",
+          "latin": "ṉaii",
+          "folder": "2Consonants/5_Pa_group/ṉa/4_ii"
+        },
+        "5_u": {
+          "char": "𑀷𑀼",
+          "latin": "ṉau",
+          "folder": "2Consonants/5_Pa_group/ṉa/5_u"
+        },
+        "6_uu": {
+          "char": "𑀷𑀽",
+          "latin": "ṉauu",
+          "folder": "2Consonants/5_Pa_group/ṉa/6_uu"
+        },
+        "7_r": {
+          "char": "𑀷𑀾",
+          "latin": "ṉar",
+          "folder": "2Consonants/5_Pa_group/ṉa/7_r"
+        },
+        "8_rr": {
+          "char": "𑀷𑀿",
+          "latin": "ṉarr",
+          "folder": "2Consonants/5_Pa_group/ṉa/8_rr"
+        },
+        "9_l": {
+          "char": "𑀷𑁀",
+          "latin": "ṉal",
+          "folder": "2Consonants/5_Pa_group/ṉa/9_l"
+        },
+        "10_ll": {
+          "char": "𑀷𑁁",
+          "latin": "ṉall",
+          "folder": "2Consonants/5_Pa_group/ṉa/10_ll"
+        },
+        "11_e": {
+          "char": "𑀷𑁂",
+          "latin": "ṉae",
+          "folder": "2Consonants/5_Pa_group/ṉa/11_e"
+        },
+        "12_ai": {
+          "char": "𑀷𑁃",
+          "latin": "ṉaai",
+          "folder": "2Consonants/5_Pa_group/ṉa/12_ai"
+        },
+        "13_o": {
+          "char": "𑀷𑁄",
+          "latin": "ṉao",
+          "folder": "2Consonants/5_Pa_group/ṉa/13_o"
+        },
+        "14_au": {
+          "char": "𑀷𑁅",
+          "latin": "ṉaau",
+          "folder": "2Consonants/5_Pa_group/ṉa/14_au"
+        }
+      }
+    }
+  },
+  "3Numbers": {
+    "1_1": {
+      "char": "𑁒",
+      "latin": "1",
+      "unicode": "U+11052",
+      "folder": "3Numbers/1_1"
+    },
+    "2_2": {
+      "char": "𑁓",
+      "latin": "2",
+      "unicode": "U+11053",
+      "folder": "3Numbers/2_2"
+    },
+    "3_3": {
+      "char": "𑁔",
+      "latin": "3",
+      "unicode": "U+11054",
+      "folder": "3Numbers/3_3"
+    },
+    "4_4": {
+      "char": "𑁕",
+      "latin": "4",
+      "unicode": "U+11055",
+      "folder": "3Numbers/4_4"
+    },
+    "5_5": {
+      "char": "𑁖",
+      "latin": "5",
+      "unicode": "U+11056",
+      "folder": "3Numbers/5_5"
+    },
+    "6_6": {
+      "char": "𑁗",
+      "latin": "6",
+      "unicode": "U+11057",
+      "folder": "3Numbers/6_6"
+    },
+    "7_7": {
+      "char": "𑁘",
+      "latin": "7",
+      "unicode": "U+11058",
+      "folder": "3Numbers/7_7"
+    },
+    "8_8": {
+      "char": "𑁙",
+      "latin": "8",
+      "unicode": "U+11059",
+      "folder": "3Numbers/8_8"
+    },
+    "9_9": {
+      "char": "𑁚",
+      "latin": "9",
+      "unicode": "U+1105A",
+      "folder": "3Numbers/9_9"
+    },
+    "10_10": {
+      "char": "𑁛",
+      "latin": "10",
+      "unicode": "U+1105B",
+      "folder": "3Numbers/10_10"
+    },
+    "11_20": {
+      "char": "𑁜",
+      "latin": "20",
+      "unicode": "U+1105C",
+      "folder": "3Numbers/11_20"
+    },
+    "12_30": {
+      "char": "𑁝",
+      "latin": "30",
+      "unicode": "U+1105D",
+      "folder": "3Numbers/12_30"
+    },
+    "13_40": {
+      "char": "𑁞",
+      "latin": "40",
+      "unicode": "U+1105E",
+      "folder": "3Numbers/13_40"
+    },
+    "14_50": {
+      "char": "𑁟",
+      "latin": "50",
+      "unicode": "U+1105F",
+      "folder": "3Numbers/14_50"
+    },
+    "15_60": {
+      "char": "𑁠",
+      "latin": "60",
+      "unicode": "U+11060",
+      "folder": "3Numbers/15_60"
+    },
+    "16_70": {
+      "char": "𑁡",
+      "latin": "70",
+      "unicode": "U+11061",
+      "folder": "3Numbers/16_70"
+    },
+    "17_80": {
+      "char": "𑁢",
+      "latin": "80",
+      "unicode": "U+11062",
+      "folder": "3Numbers/17_80"
+    },
+    "18_90": {
+      "char": "𑁣",
+      "latin": "90",
+      "unicode": "U+11063",
+      "folder": "3Numbers/18_90"
+    },
+    "19_100": {
+      "char": "𑁤",
+      "latin": "100",
+      "unicode": "U+11064",
+      "folder": "3Numbers/19_100"
+    },
+    "20_1000": {
+      "char": "𑁥",
+      "latin": "1000",
+      "unicode": "U+11065",
+      "folder": "3Numbers/20_1000"
+    },
+    "21_0": {
+      "char": "𑁦",
+      "latin": "0",
+      "unicode": "U+11066",
+      "folder": "3Numbers/21_0"
+    },
+    "22_1": {
+      "char": "𑁧",
+      "latin": "1",
+      "unicode": "U+11067",
+      "folder": "3Numbers/22_1"
+    },
+    "23_2": {
+      "char": "𑁨",
+      "latin": "2",
+      "unicode": "U+11068",
+      "folder": "3Numbers/23_2"
+    },
+    "24_3": {
+      "char": "𑁩",
+      "latin": "3",
+      "unicode": "U+11069",
+      "folder": "3Numbers/24_3"
+    },
+    "25_4": {
+      "char": "𑁪",
+      "latin": "4",
+      "unicode": "U+1106A",
+      "folder": "3Numbers/25_4"
+    },
+    "26_5": {
+      "char": "𑁫",
+      "latin": "5",
+      "unicode": "U+1106B",
+      "folder": "3Numbers/26_5"
+    },
+    "27_6": {
+      "char": "𑁬",
+      "latin": "6",
+      "unicode": "U+1106C",
+      "folder": "3Numbers/27_6"
+    },
+    "28_7": {
+      "char": "𑁭",
+      "latin": "7",
+      "unicode": "U+1106D",
+      "folder": "3Numbers/28_7"
+    },
+    "29_8": {
+      "char": "𑁮",
+      "latin": "8",
+      "unicode": "U+1106E",
+      "folder": "3Numbers/29_8"
+    },
+    "30_9": {
+      "char": "𑁯",
+      "latin": "9",
+      "unicode": "U+1106F",
+      "folder": "3Numbers/30_9"
+    }
+  },
+  "4Extras": {
+    "1_m̐": {
+      "char": "𑀀",
+      "latin": "m̐",
+      "unicode": "U+11000",
+      "folder": "4Extras/1_m̐"
+    },
+    "2_ṃ": {
+      "char": "𑀁",
+      "latin": "ṃ",
+      "unicode": "U+11001",
+      "folder": "4Extras/2_ṃ"
+    },
+    "3_ḥ": {
+      "char": "𑀂",
+      "latin": "ḥ",
+      "unicode": "U+11002",
+      "folder": "4Extras/3_ḥ"
+    },
+    "4_jihvamuliya": {
+      "char": "𑀃",
+      "latin": "jihvamuliya",
+      "unicode": "U+11003",
+      "folder": "4Extras/4_jihvamuliya"
+    },
+    "5_upadhmaniya": {
+      "char": "𑀄",
+      "latin": "upadhmaniya",
+      "unicode": "U+11004",
+      "folder": "4Extras/5_upadhmaniya"
+    },
+    "6_ā": {
+      "char": "𑀸",
+      "latin": "ā",
+      "unicode": "U+11038",
+      "folder": "4Extras/6_ā"
+    },
+    "7_ā": {
+      "char": "𑀹",
+      "latin": "ā",
+      "unicode": "U+11039",
+      "folder": "4Extras/7_ā"
+    },
+    "8_i": {
+      "char": "𑀺",
+      "latin": "i",
+      "unicode": "U+1103A",
+      "folder": "4Extras/8_i"
+    },
+    "9_ī": {
+      "char": "𑀻",
+      "latin": "ī",
+      "unicode": "U+1103B",
+      "folder": "4Extras/9_ī"
+    },
+    "10_u": {
+      "char": "𑀼",
+      "latin": "u",
+      "unicode": "U+1103C",
+      "folder": "4Extras/10_u"
+    },
+    "11_ū": {
+      "char": "𑀽",
+      "latin": "ū",
+      "unicode": "U+1103D",
+      "folder": "4Extras/11_ū"
+    },
+    "12_ṛ": {
+      "char": "𑀾",
+      "latin": "ṛ",
+      "unicode": "U+1103E",
+      "folder": "4Extras/12_ṛ"
+    },
+    "13_ṝ": {
+      "char": "𑀿",
+      "latin": "ṝ",
+      "unicode": "U+1103F",
+      "folder": "4Extras/13_ṝ"
+    },
+    "14_l̥": {
+      "char": "𑁀",
+      "latin": "l̥",
+      "unicode": "U+11040",
+      "folder": "4Extras/14_l̥"
+    },
+    "15_l̥̄": {
+      "char": "𑁁",
+      "latin": "l̥̄",
+      "unicode": "U+11041",
+      "folder": "4Extras/15_l̥̄"
+    },
+    "16_e": {
+      "char": "𑁂",
+      "latin": "e",
+      "unicode": "U+11042",
+      "folder": "4Extras/16_e"
+    },
+    "17_ai": {
+      "char": "𑁃",
+      "latin": "ai",
+      "unicode": "U+11043",
+      "folder": "4Extras/17_ai"
+    },
+    "18_o": {
+      "char": "𑁄",
+      "latin": "o",
+      "unicode": "U+11044",
+      "folder": "4Extras/18_o"
+    },
+    "19_au": {
+      "char": "𑁅",
+      "latin": "au",
+      "unicode": "U+11045",
+      "folder": "4Extras/19_au"
+    },
+    "20_": {
+      "char": "𑁆",
+      "latin": "",
+      "unicode": "U+11046",
+      "folder": "4Extras/20_"
+    },
+    "21__": {
+      "char": "𑁇",
+      "latin": "|",
+      "unicode": "U+11047",
+      "folder": "4Extras/21__"
+    },
+    "22___": {
+      "char": "𑁈",
+      "latin": "||",
+      "unicode": "U+11048",
+      "folder": "4Extras/22___"
+    },
+    "23_·": {
+      "char": "𑁉",
+      "latin": "·",
+      "unicode": "U+11049",
+      "folder": "4Extras/23_·"
+    },
+    "24_··": {
+      "char": "𑁊",
+      "latin": "··",
+      "unicode": "U+1104A",
+      "folder": "4Extras/24_··"
+    },
+    "25_—": {
+      "char": "𑁋",
+      "latin": "—",
+      "unicode": "U+1104B",
+      "folder": "4Extras/25_—"
+    },
+    "26_crescent": {
+      "char": "𑁌",
+      "latin": "crescent",
+      "unicode": "U+1104C",
+      "folder": "4Extras/26_crescent"
+    },
+    "27_lotus": {
+      "char": "𑁍",
+      "latin": "lotus",
+      "unicode": "U+1104D",
+      "folder": "4Extras/27_lotus"
+    },
+    "28_": {
+      "char": "𑁰",
+      "latin": "",
+      "unicode": "U+11070",
+      "folder": "4Extras/28_"
+    },
+    "29_e": {
+      "char": "𑁱",
+      "latin": "e",
+      "unicode": "U+11071",
+      "folder": "4Extras/29_e"
+    },
+    "30_o": {
+      "char": "𑁲",
+      "latin": "o",
+      "unicode": "U+11072",
+      "folder": "4Extras/30_o"
+    },
+    "31_e": {
+      "char": "𑁳",
+      "latin": "e",
+      "unicode": "U+11073",
+      "folder": "4Extras/31_e"
+    },
+    "32_o": {
+      "char": "𑁴",
+      "latin": "o",
+      "unicode": "U+11074",
+      "folder": "4Extras/32_o"
+    },
+    "33_ḷa": {
+      "char": "𑁵",
+      "latin": "ḷa",
+      "unicode": "U+11075",
+      "folder": "4Extras/33_ḷa"
+    },
+    "34_joiner": {
+      "char": "𑁿",
+      "latin": "joiner",
+      "unicode": "U+1107F",
+      "folder": "4Extras/34_joiner"
+    }
+  },
+  "5Words_Phrases": {
+    "1": {
+      "char": "MIXED",
+      "latin": "mixed",
+      "folder": "5Words_Phrases",
+      "desc": "Dump random words/phrases here, with labels.txt format mapping"
+    }
+  }
+}
