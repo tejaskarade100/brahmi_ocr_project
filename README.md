@@ -116,6 +116,28 @@ python inference/predict.py --image path/to/image.png --preprocess
 python inference/predict.py --image path/to/image.png --preprocess --debug --json_out result.json
 ```
 
+
+### 5. Training on Free GPU Cloud Platforms (Colab / Kaggle)
+
+Because training TrOCR requires significant compute, you can use the provided Jupyter Notebooks to seamlessly train on free GPUs without losing your progress!
+
+#### 🚀 Option A: Google Colab (`colab_training.ipynb`)
+1. Upload your dataset ZIP to Google Drive.
+2. Open `colab_training.ipynb` in Google Colab.
+3. Turn on the **T4 GPU** (Runtime -> Change runtime type).
+4. Run the notebook. It will automatically mount your Google Drive, unpack the dataset, train the model, and safely save the weights back into your Google Drive permanently!
+
+#### 🚀 Option B: Kaggle (`kaggle_training.ipynb`)
+Kaggle offers **30 hours per week of free T4x2 GPU time**.
+1. Create a New Notebook in Kaggle.
+2. Click **Add Data** -> Upload your `dataset.zip` (Kaggle stores this permanently off-disk).
+3. Upload `kaggle_training.ipynb` to the notebook via File -> Import.
+4. Turn on the **GPU T4x2** in the right-side Session menu.
+5. Run the notebook. 
+6. **To Save Your Model:** When training finishes, click the **Save Version** button in the top right corner and choose "Save & Run All (Commit)". Your trained model weights will be permanently saved in the notebook's `checkpoints` output directory for future use!
+
+**Persistence:** Both platforms rely on `train.py`'s automatic checkpoint detection. If your notebook crashes or you switch accounts, just ensure your previous checkpoint folder is available and the script will resume exactly where it left off!
+
 ## Tech Stack
 
 | Component | Technology |
