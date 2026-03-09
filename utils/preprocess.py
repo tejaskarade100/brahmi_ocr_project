@@ -166,6 +166,26 @@ def _array_stats(arr: np.ndarray) -> dict:
     }
 
 
+def determine_preprocessing_mode(image: np.ndarray) -> str:
+    """
+    Heuristic to decide if an image needs heavy binarization (noisy photo) 
+    or should be left alone (clean synthetic/scan).
+    """
+    gray = to_grayscale(image)
+    
+    # Calculate contrast (standard deviation of pixel intensities)
+    std_dev = np.std(gray)
+    
+    # Calculate blur (variance of Laplacian)
+    laplacian_var = cv2.Laplacian(gray, cv2.CV_64F).var()
+    
+    # Heuristic thresholds:
+    # Low standard deviation = washed out/low contrast (needs thresholding)
+    if std_dev < 45 or laplacian_var < 300:
+        return "adaptive"  # Noisy photo / poorly lit
+    return "none" # Clean scan / high contrast synthetic
+
+
 def preprocess_image(
     path: str,
     target_size: tuple = (384, 384),
@@ -189,6 +209,11 @@ def preprocess_image(
       - (PIL.Image, debug_dict) if return_debug=True
     """
     img = load_image(path)
+    if threshold_method == "auto":
+        threshold_method = determine_preprocessing_mode(img)
+        if threshold_method == "none":
+            threshold_method = None
+
     gray = to_grayscale(img)
     denoised = remove_noise(gray, method="gaussian")
     enhanced = enhance_contrast(denoised)
@@ -199,6 +224,7 @@ def preprocess_image(
         "target_size": {"width": int(target_size[0]), "height": int(target_size[1])},
         "steps": [],
         "padding": {},
+        "auto_mode_resolved": threshold_method if threshold_method else "none",
     }
 
     if return_debug:

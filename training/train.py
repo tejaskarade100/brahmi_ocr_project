@@ -14,8 +14,9 @@ import sys
 from typing import Dict, Iterable, List
 
 import torch
+import jiwer
 from torch.utils.data import ConcatDataset, DataLoader
-from transformers import AddedToken, TrOCRProcessor, VisionEncoderDecoderModel
+from transformers import AddedToken, TrOCRProcessor, VisionEncoderDecoderModel, get_cosine_schedule_with_warmup
 
 # Allow imports from project root
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -62,6 +63,8 @@ def parse_args():
     p.add_argument("--max_label_length", type=int, default=64)
     p.add_argument("--image_size", type=int, default=384)
     p.add_argument("--seed", type=int, default=42)
+    p.add_argument("--warmup_ratio", type=float, default=0.1)
+    p.add_argument("--patience", type=int, default=3)
     p.add_argument("--train_ratio", type=float, default=0.8)
     p.add_argument("--val_ratio", type=float, default=0.1)
     p.add_argument("--test_ratio", type=float, default=0.1)
@@ -190,7 +193,7 @@ def load_model(model_name: str, processor, dataset_chars: List[str], max_new_tok
     return model
 
 
-def train_one_epoch(model, dataloader, optimizer, device, scaler=None):
+def train_one_epoch(model, dataloader, optimizer, scheduler, device, scaler=None):
     model.train()
     total_loss = 0.0
     num_batches = 0
@@ -206,13 +209,22 @@ def train_one_epoch(model, dataloader, optimizer, device, scaler=None):
                 outputs = model(pixel_values=pixel_values, labels=labels)
                 loss = outputs.loss
             scaler.scale(loss).backward()
+            
+            scaler.unscale_(optimizer)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            
             scaler.step(optimizer)
             scaler.update()
         else:
             outputs = model(pixel_values=pixel_values, labels=labels)
             loss = outputs.loss
             loss.backward()
+            
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            
             optimizer.step()
+
+        scheduler.step()
 
         total_loss += loss.item()
         num_batches += 1
@@ -220,10 +232,12 @@ def train_one_epoch(model, dataloader, optimizer, device, scaler=None):
     return total_loss / max(num_batches, 1)
 
 
-def evaluate(model, dataloader, device):
+def evaluate(model, dataloader, device, processor):
     model.eval()
     total_loss = 0.0
     num_batches = 0
+    predictions = []
+    references = []
 
     with torch.no_grad():
         for batch in dataloader:
@@ -232,8 +246,30 @@ def evaluate(model, dataloader, device):
             outputs = model(pixel_values=pixel_values, labels=labels)
             total_loss += outputs.loss.item()
             num_batches += 1
+            
+            generated_ids = model.generate(pixel_values)
+            preds = processor.batch_decode(generated_ids, skip_special_tokens=True)
+            
+            labels[labels == -100] = processor.tokenizer.pad_token_id
+            refs = processor.batch_decode(labels, skip_special_tokens=True)
+            
+            predictions.extend(preds)
+            references.extend(refs)
 
-    return total_loss / max(num_batches, 1)
+    val_loss = total_loss / max(num_batches, 1)
+    
+    # Filter out empty references to avoid jiwer errors
+    filtered_preds = []
+    filtered_refs = []
+    for p, r in zip(predictions, references):
+        if r.strip():
+            filtered_preds.append(p)
+            filtered_refs.append(r)
+            
+    cer = jiwer.cer(filtered_refs, filtered_preds) if filtered_refs else 1.0
+    wer = jiwer.wer(filtered_refs, filtered_preds) if filtered_refs else 1.0
+    
+    return val_loss, cer, wer
 
 
 def main():
@@ -342,23 +378,32 @@ def main():
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr)
     scaler = torch.amp.GradScaler("cuda") if use_fp16 else None
 
-    best_val_loss = float("inf")
+    total_steps = len(train_loader) * args.epochs
+    warmup_steps = int(total_steps * args.warmup_ratio)
+    scheduler = get_cosine_schedule_with_warmup(
+        optimizer, num_warmup_steps=warmup_steps, num_training_steps=total_steps
+    )
+
+    best_val_cer = float("inf")
+    patience_counter = 0
     os.makedirs(args.output_dir, exist_ok=True)
 
     for epoch in range(1, args.epochs + 1):
-        train_loss = train_one_epoch(model, train_loader, optimizer, device, scaler)
-        val_loss = evaluate(model, val_loader, device)
+        train_loss = train_one_epoch(model, train_loader, optimizer, scheduler, device, scaler)
+        val_loss, val_cer, val_wer = evaluate(model, val_loader, device, processor)
 
         print(
             f"Epoch {epoch}/{args.epochs} | "
-            f"Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f}"
+            f"Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f} | "
+            f"Val CER: {val_cer:.4f} | Val WER: {val_wer:.4f}"
         )
 
-        if val_loss < best_val_loss:
-            best_val_loss = val_loss
+        if val_cer < best_val_cer:
+            best_val_cer = val_cer
+            patience_counter = 0
             model.save_pretrained(args.output_dir)
             processor.save_pretrained(args.output_dir)
-            print(f"  -> Best model saved to {args.output_dir}")
+            print(f"  -> Best model saved to {args.output_dir} (CER: {val_cer:.4f})")
 
             if args.drive_save_path:
                 try:
@@ -370,8 +415,14 @@ def main():
                     print(f"  -> Backup saved to {args.drive_save_path}")
                 except Exception as exc:
                     print(f"  -> Warning: backup failed: {exc}")
+        else:
+            patience_counter += 1
+            print(f"  -> No improvement in CER. Patience: {patience_counter}/{args.patience}")
+            if patience_counter >= args.patience:
+                print(f"\\nEarly stopping triggered at epoch {epoch}.")
+                break
 
-    print(f"\nTraining complete. Best val loss: {best_val_loss:.4f}")
+    print(f"\\nTraining complete. Best val CER: {best_val_cer:.4f}")
     print(f"Model saved at: {args.output_dir}")
 
 

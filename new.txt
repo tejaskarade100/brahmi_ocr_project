@@ -18,3 +18,7 @@ python inference/predict.py --image <path> --preprocess --debug --json_out resul
 
 python dataset/validate_dataset.py --data_dir dataset --json_out dataset_validation_report.json
 python dataset/validate_dataset.py --data_dir dataset --strict
+
+
+
+python inference/predict.py --image ... --preprocess --threshold_method auto

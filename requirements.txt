@@ -27,3 +27,5 @@ matplotlib
 # --- Backend (future web API) ---
 # fastapi
 # uvicorn
+
+jiwer>=3.0.0

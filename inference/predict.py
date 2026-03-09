@@ -234,8 +234,8 @@ def main():
         "--threshold_method",
         type=str,
         default=None,
-        choices=["adaptive", "otsu", "simple"],
-        help="Optional thresholding method when --preprocess is enabled",
+        choices=["adaptive", "otsu", "simple", "auto"],
+        help="Optional thresholding method when --preprocess is enabled (use 'auto' for heuristic detection)",
     )
     parser.add_argument("--image_size", type=int, default=384, help="Square target size")
     parser.add_argument(
