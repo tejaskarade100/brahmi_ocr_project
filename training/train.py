@@ -1,125 +1,187 @@
 """
-training/train.py — TrOCR Fine-Tuning Script for Brahmi OCR
-=============================================================
+training/train.py
+=================
 
-Fine-tune  microsoft/trocr-small-printed  on the synthetic Brahmi dataset
-produced by  dataset/generate_synthetic.py , optionally combined with
-folder-labelled datasets (Capstone, BrahmiGAN).
-
-USAGE:
-    python training/train.py                     # uses defaults (synthetic only)
-    python training/train.py --extra_data path/to/RecognizerDataset  # + Capstone
-    python training/train.py --epochs 5 --lr 3e-5 --batch_size 4
-
-DEFAULTS:
-    model   : microsoft/trocr-small-printed
-    epochs  : 10
-    lr      : 5e-5
-    batch    : 2
-    output  : model/brahmi_trocr/
+Fine-tune TrOCR on map.json-driven Brahmi OCR datasets.
 """
 
-import os
-import sys
+from __future__ import annotations
+
 import argparse
+import os
+import random
+import sys
+from typing import Dict, Iterable, List
+
 import torch
-from torch.utils.data import DataLoader
-from transformers import (
-    TrOCRProcessor,
-    VisionEncoderDecoderModel,
-    default_data_collator,
-)
+from torch.utils.data import ConcatDataset, DataLoader
+from transformers import AddedToken, TrOCRProcessor, VisionEncoderDecoderModel
 
 # Allow imports from project root
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from training.dataset_loader import BrahmiDataset, build_combined_dataset
 
+from training.dataset_loader import BrahmiDataset
 
-# --------------------------------------------------------------------------
-# CLI
-# --------------------------------------------------------------------------
 
 def parse_args():
-    p = argparse.ArgumentParser(description="Fine-tune TrOCR on Brahmi OCR data")
-    p.add_argument("--data_dir", type=str,
-                    default=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "dataset"),
-                    help="Path to dataset/ directory")
-    p.add_argument("--model_name", type=str,
-                    default="microsoft/trocr-small-printed",
-                    help="HuggingFace model identifier")
-    p.add_argument("--output_dir", type=str, default="model/brahmi_trocr",
-                        help="Directory to save the trained model.")
-    p.add_argument("--drive_save_path", type=str, default="",
-                        help="Optional Google Drive path to auto-save the best model at each epoch.")
+    p = argparse.ArgumentParser(description="Fine-tune TrOCR on Brahmi OCR data (map.json)")
+    p.add_argument(
+        "--data_dir",
+        type=str,
+        default=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "dataset"),
+        help="Path to primary dataset root (must contain map.json)",
+    )
+    p.add_argument(
+        "--extra_data",
+        type=str,
+        nargs="*",
+        default=[],
+        help="Optional extra dataset roots, each with its own map.json",
+    )
+    p.add_argument(
+        "--model_name",
+        type=str,
+        default="microsoft/trocr-small-printed",
+        help="HuggingFace model identifier or local checkpoint path",
+    )
+    p.add_argument(
+        "--output_dir",
+        type=str,
+        default="model/brahmi_trocr",
+        help="Directory to save the best model",
+    )
+    p.add_argument(
+        "--drive_save_path",
+        type=str,
+        default="",
+        help="Optional backup path for best model after each improvement",
+    )
     p.add_argument("--epochs", type=int, default=10)
     p.add_argument("--batch_size", type=int, default=2)
     p.add_argument("--lr", type=float, default=5e-5)
     p.add_argument("--max_label_length", type=int, default=64)
+    p.add_argument("--image_size", type=int, default=384)
     p.add_argument("--seed", type=int, default=42)
-    p.add_argument("--extra_data", type=str, nargs="*", default=[],
-                    help="Paths to extra folder-labelled datasets (Capstone, BrahmiGAN)")
+    p.add_argument("--train_ratio", type=float, default=0.8)
+    p.add_argument("--val_ratio", type=float, default=0.1)
+    p.add_argument("--test_ratio", type=float, default=0.1)
     return p.parse_args()
 
 
-# --------------------------------------------------------------------------
-# Model setup
-# --------------------------------------------------------------------------
-
-def get_brahmi_characters() -> list:
-    """
-    Return all Brahmi Unicode characters used in our dataset.
-    Must match the character ranges in dataset/generate_synthetic.py.
-    """
-    chars = []
-    # Independent vowels  U+11005 – U+11012
-    chars += [chr(c) for c in range(0x11005, 0x11013)]
-    # Consonants  U+11013 – U+11037
-    chars += [chr(c) for c in range(0x11013, 0x11038)]
-    # Dependent vowel signs  U+11038 – U+11046
-    chars += [chr(c) for c in range(0x11038, 0x11047)]
-    # Digits  U+11052 – U+11069
-    chars += [chr(c) for c in range(0x11052, 0x1106A)]
-    # Space (used in phrases)
-    chars += [" "]
-    return chars
+def _sum_dict_counts(dicts: Iterable[Dict[int, int]]) -> Dict[int, int]:
+    merged: Dict[int, int] = {}
+    for d in dicts:
+        for k, v in d.items():
+            merged[int(k)] = merged.get(int(k), 0) + int(v)
+    return dict(sorted(merged.items()))
 
 
-def load_model(model_name: str, processor):
+def merge_summaries(summaries: List[Dict]) -> Dict:
+    if not summaries:
+        return {
+            "total_samples": 0,
+            "unique_labels": 0,
+            "category_counts": {
+                "characters_ngrams": 0,
+                "words": 0,
+                "phrases": 0,
+                "long_sentences": 0,
+            },
+            "char_length_histogram": {},
+            "word_count_histogram": {},
+        }
+
+    category_counts = {
+        "characters_ngrams": 0,
+        "words": 0,
+        "phrases": 0,
+        "long_sentences": 0,
+    }
+    total_samples = 0
+    unique_labels = 0
+    char_hists = []
+    word_hists = []
+
+    for s in summaries:
+        total_samples += int(s.get("total_samples", 0))
+        unique_labels += int(s.get("unique_labels", 0))
+        cats = s.get("category_counts", {})
+        for key in category_counts:
+            category_counts[key] += int(cats.get(key, 0))
+        char_hists.append(s.get("char_length_histogram", {}))
+        word_hists.append(s.get("word_count_histogram", {}))
+
+    return {
+        "total_samples": total_samples,
+        "unique_labels": unique_labels,
+        "category_counts": category_counts,
+        "char_length_histogram": _sum_dict_counts(char_hists),
+        "word_count_histogram": _sum_dict_counts(word_hists),
+    }
+
+
+def print_dataset_summary(title: str, summary: Dict):
+    total = max(int(summary.get("total_samples", 0)), 1)
+    cats = summary.get("category_counts", {})
+
+    c_chars = int(cats.get("characters_ngrams", 0))
+    c_words = int(cats.get("words", 0))
+    c_phrases = int(cats.get("phrases", 0))
+    c_long = int(cats.get("long_sentences", 0))
+
+    def pct(x: int) -> float:
+        return 100.0 * x / total
+
+    print(f"\n{title}")
+    print(f"  Total samples         : {summary.get('total_samples', 0)}")
+    print(f"  Unique text labels    : {summary.get('unique_labels', 0)}")
+    print(f"  Characters/N-Grams    : {c_chars} ({pct(c_chars):.2f}%)")
+    print(f"  Words                 : {c_words} ({pct(c_words):.2f}%)")
+    print(f"  Phrases               : {c_phrases} ({pct(c_phrases):.2f}%)")
+    print(f"  Long sentences        : {c_long} ({pct(c_long):.2f}%)")
+
+    char_hist = summary.get("char_length_histogram", {})
+    word_hist = summary.get("word_count_histogram", {})
+    if char_hist:
+        top_char_lengths = list(char_hist.items())[:12]
+        print(f"  Char-length histogram : {top_char_lengths}")
+    if word_hist:
+        top_word_lengths = list(word_hist.items())[:12]
+        print(f"  Word-count histogram  : {top_word_lengths}")
+
+
+def load_model(model_name: str, processor, dataset_chars: List[str], max_new_tokens: int):
     """
-    Load TrOCR VisionEncoderDecoderModel, add Brahmi tokens, and configure
-    generation params.
+    Load model, add dataset characters to tokenizer, and set generation config.
     """
     model = VisionEncoderDecoderModel.from_pretrained(model_name)
 
-    # ---- Add Brahmi characters to tokenizer vocabulary ----
-    # The default XLMRoBERTa tokenizer encodes Brahmi as <unk>.
-    # We add every Brahmi character as a new token so the model
-    # can learn to generate real Brahmi IDs instead of <unk>.
-    from transformers import AddedToken
-
-    brahmi_chars = get_brahmi_characters()
     existing_vocab = processor.tokenizer.get_vocab()
-    new_tokens = [AddedToken(ch, normalized=False) for ch in brahmi_chars if ch not in existing_vocab]
+    new_tokens = [
+        AddedToken(ch, normalized=False)
+        for ch in dataset_chars
+        if ch and ch not in existing_vocab
+    ]
+
     if new_tokens:
         num_added = processor.tokenizer.add_tokens(new_tokens)
-        print(f"  Added {num_added} Brahmi tokens to tokenizer "
-              f"(vocab size → {len(processor.tokenizer)})")
+        print(
+            f"  Added {num_added} dataset tokens to tokenizer "
+            f"(vocab size -> {len(processor.tokenizer)})"
+        )
 
-    # Resize decoder embeddings to match new vocab size
     model.decoder.resize_token_embeddings(len(processor.tokenizer))
     model.config.decoder.vocab_size = len(processor.tokenizer)
     model.config.vocab_size = len(processor.tokenizer)
 
-    # Configure special tokens — on BOTH config and generation_config
     model.config.decoder_start_token_id = processor.tokenizer.cls_token_id
     model.config.pad_token_id = processor.tokenizer.pad_token_id
     model.config.eos_token_id = processor.tokenizer.sep_token_id
 
-    # Generation settings — on generation_config so they are saved properly
     model.generation_config.decoder_start_token_id = processor.tokenizer.cls_token_id
     model.generation_config.pad_token_id = processor.tokenizer.pad_token_id
     model.generation_config.eos_token_id = processor.tokenizer.sep_token_id
-    model.generation_config.max_new_tokens = 64
+    model.generation_config.max_new_tokens = max_new_tokens
     model.generation_config.early_stopping = True
     model.generation_config.no_repeat_ngram_size = 3
     model.generation_config.length_penalty = 2.0
@@ -128,18 +190,7 @@ def load_model(model_name: str, processor):
     return model
 
 
-
-# --------------------------------------------------------------------------
-# Training loop
-# --------------------------------------------------------------------------
-
 def train_one_epoch(model, dataloader, optimizer, device, scaler=None):
-    """
-    Run one epoch of training.
-
-    Returns:
-        Average training loss for the epoch.
-    """
     model.train()
     total_loss = 0.0
     num_batches = 0
@@ -170,12 +221,6 @@ def train_one_epoch(model, dataloader, optimizer, device, scaler=None):
 
 
 def evaluate(model, dataloader, device):
-    """
-    Evaluate the model on a validation dataloader.
-
-    Returns:
-        Average validation loss.
-    """
     model.eval()
     total_loss = 0.0
     num_batches = 0
@@ -191,65 +236,112 @@ def evaluate(model, dataloader, device):
     return total_loss / max(num_batches, 1)
 
 
-# --------------------------------------------------------------------------
-# Main
-# --------------------------------------------------------------------------
-
 def main():
     args = parse_args()
     torch.manual_seed(args.seed)
+    random.seed(args.seed)
 
-    # ---- Device ----
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     use_fp16 = device.type == "cuda"
-    print(f"Device : {device}  |  FP16 : {use_fp16}")
+    print(f"Device: {device} | FP16: {use_fp16}")
 
-    # ---- Processor & model ----
-    # Auto-resume logic: check if model already exists in output_dir or drive_save_path
+    split_ratios = (args.train_ratio, args.val_ratio, args.test_ratio)
+    roots = [args.data_dir] + list(args.extra_data or [])
+    roots = [r for r in roots if r and os.path.isdir(r)]
+    if not roots:
+        raise ValueError("No valid dataset roots found. Check --data_dir / --extra_data.")
+
+    # Auto-resume: prefer existing output checkpoint, then optional backup path.
     model_name_or_path = args.model_name
     if os.path.exists(os.path.join(args.output_dir, "config.json")):
-        print(f"\n🔄 [RESUME] Found existing model at '{args.output_dir}'. Training more from this checkpoint!")
+        print(f"\n[RESUME] Found existing model at '{args.output_dir}'.")
         model_name_or_path = args.output_dir
     elif args.drive_save_path and os.path.exists(os.path.join(args.drive_save_path, "config.json")):
-        print(f"\n🔄 [RESUME] Found existing model at '{args.drive_save_path}'. Training more from this checkpoint!")
+        print(f"\n[RESUME] Found existing model at '{args.drive_save_path}'.")
         model_name_or_path = args.drive_save_path
 
-    print(f"Loading processor & model: {model_name_or_path}")
+    print(f"Loading processor from: {model_name_or_path}")
     processor = TrOCRProcessor.from_pretrained(model_name_or_path, use_fast=False)
-    model = load_model(model_name_or_path, processor)
+
+    train_parts = []
+    val_parts = []
+    train_summaries = []
+    val_summaries = []
+    dataset_chars = set()
+
+    for root in roots:
+        print(f"\nLoading dataset root: {root}")
+        train_ds = BrahmiDataset(
+            root,
+            split="train",
+            processor=processor,
+            max_label_length=args.max_label_length,
+            split_ratios=split_ratios,
+            seed=args.seed,
+            image_size=args.image_size,
+        )
+        val_ds = BrahmiDataset(
+            root,
+            split="val",
+            processor=processor,
+            max_label_length=args.max_label_length,
+            split_ratios=split_ratios,
+            seed=args.seed,
+            image_size=args.image_size,
+        )
+
+        train_parts.append(train_ds)
+        val_parts.append(val_ds)
+        train_summaries.append(train_ds.summary)
+        val_summaries.append(val_ds.summary)
+        dataset_chars.update(train_ds.character_set)
+        dataset_chars.update(val_ds.character_set)
+
+    train_summary = merge_summaries(train_summaries)
+    val_summary = merge_summaries(val_summaries)
+    print_dataset_summary("Train Dataset Breakdown", train_summary)
+    print_dataset_summary("Val Dataset Breakdown", val_summary)
+
+    # Ensure whitespace token is included for phrase/sentence OCR.
+    dataset_chars.add(" ")
+    sorted_chars = sorted(ch for ch in dataset_chars if ch)
+    print(f"\nTokenizer character inventory size: {len(sorted_chars)}")
+
+    print(f"Loading model from: {model_name_or_path}")
+    model = load_model(
+        model_name_or_path,
+        processor=processor,
+        dataset_chars=sorted_chars,
+        max_new_tokens=args.max_label_length,
+    )
     model.to(device)
 
-    # ---- Datasets ----
-    print(f"Loading datasets from: {args.data_dir}")
-    if args.extra_data:
-        print(f"Extra datasets: {args.extra_data}")
-        train_ds = build_combined_dataset(
-            args.data_dir, args.extra_data, processor,
-            split="train", max_label_length=args.max_label_length)
-        val_ds = build_combined_dataset(
-            args.data_dir, args.extra_data, processor,
-            split="val", max_label_length=args.max_label_length)
+    if len(train_parts) == 1:
+        train_ds = train_parts[0]
+        val_ds = val_parts[0]
     else:
-        train_ds = BrahmiDataset(args.data_dir, split="train",
-                                 processor=processor,
-                                 max_label_length=args.max_label_length)
-        val_ds = BrahmiDataset(args.data_dir, split="val",
-                               processor=processor,
-                               max_label_length=args.max_label_length)
+        train_ds = ConcatDataset(train_parts)
+        val_ds = ConcatDataset(val_parts)
 
-    train_loader = DataLoader(train_ds, batch_size=args.batch_size,
-                              shuffle=True, collate_fn=BrahmiDataset.collate_fn)
-    val_loader = DataLoader(val_ds, batch_size=args.batch_size,
-                            shuffle=False, collate_fn=BrahmiDataset.collate_fn)
+    train_loader = DataLoader(
+        train_ds,
+        batch_size=args.batch_size,
+        shuffle=True,
+        collate_fn=BrahmiDataset.collate_fn,
+    )
+    val_loader = DataLoader(
+        val_ds,
+        batch_size=args.batch_size,
+        shuffle=False,
+        collate_fn=BrahmiDataset.collate_fn,
+    )
 
-    print(f"Train samples : {len(train_ds)}")
-    print(f"Val samples   : {len(val_ds)}")
+    print(f"\nTrain samples: {len(train_ds)}")
+    print(f"Val samples  : {len(val_ds)}")
 
-    # ---- Optimizer ----
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr)
     scaler = torch.amp.GradScaler("cuda") if use_fp16 else None
 
-    # ---- Training loop ----
     best_val_loss = float("inf")
     os.makedirs(args.output_dir, exist_ok=True)
 
@@ -257,26 +349,27 @@ def main():
         train_loss = train_one_epoch(model, train_loader, optimizer, device, scaler)
         val_loss = evaluate(model, val_loader, device)
 
-        print(f"Epoch {epoch}/{args.epochs}  |  "
-              f"Train Loss: {train_loss:.4f}  |  Val Loss: {val_loss:.4f}")
+        print(
+            f"Epoch {epoch}/{args.epochs} | "
+            f"Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f}"
+        )
 
-        # Save best model
         if val_loss < best_val_loss:
             best_val_loss = val_loss
-
             model.save_pretrained(args.output_dir)
             processor.save_pretrained(args.output_dir)
-            print(f"  ➜ Best model saved to {args.output_dir}")
+            print(f"  -> Best model saved to {args.output_dir}")
 
             if args.drive_save_path:
                 try:
                     import shutil
+
                     if os.path.exists(args.drive_save_path):
                         shutil.rmtree(args.drive_save_path)
                     shutil.copytree(args.output_dir, args.drive_save_path)
-                    print(f"  ➜ Auto-saved backup to {args.drive_save_path}!")
-                except Exception as e:
-                    print(f"  ➜ Warning: Could not auto-save to Drive: {e}")
+                    print(f"  -> Backup saved to {args.drive_save_path}")
+                except Exception as exc:
+                    print(f"  -> Warning: backup failed: {exc}")
 
     print(f"\nTraining complete. Best val loss: {best_val_loss:.4f}")
     print(f"Model saved at: {args.output_dir}")

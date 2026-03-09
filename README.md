@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project performs **Optical Character Recognition (OCR)** on ancient **Brahmi script** found on stone inscriptions, manuscripts, and historical documents. It uses a **TrOCR** (Transformer-based OCR) model fine-tuned on a synthetically generated Brahmi dataset.
+This project performs **Optical Character Recognition (OCR)** on ancient **Brahmi script** found on stone inscriptions, manuscripts, and historical documents. It uses a **TrOCR** (Transformer-based OCR) model fine-tuned on a curated, map-driven Brahmi dataset.
 
 ## Pipeline
 
@@ -12,7 +12,7 @@ Image → Preprocessing → OCR (Brahmi Unicode) → Transliteration (Devanagari
 
 | Stage | Status |
 |-------|--------|
-| Synthetic dataset generation | ✅ Implemented |
+| Map-driven dataset loading | ✅ Implemented |
 | Image preprocessing | ✅ Implemented |
 | TrOCR fine-tuning | ✅ Implemented |
 | Inference | ✅ Implemented |
@@ -26,13 +26,12 @@ Image → Preprocessing → OCR (Brahmi Unicode) → Transliteration (Devanagari
 brahmi_ocr_project/
 │
 ├── dataset/
-│   ├── generate_synthetic.py  ← synthetic dataset generator
-│   ├── images/                   generated Brahmi text images
-│   ├── labels.txt                image_name<TAB>brahmi_text
-│   └── splits/
-│       ├── train.txt
-│       ├── val.txt
-│       └── test.txt
+│   ├── map.json                  single source of truth for labels/folders
+│   ├── 1Vowels/                  character folders
+│   ├── 2Consonants/              character + matra folders
+│   ├── 3Numbers/                 number folders
+│   ├── 4Extras/                  punctuation/symbol folders
+│   └── 5Words_Phrases/           mixed text images (+ labels file)
 │
 ├── model/
 │   └── brahmi_trocr/           ← saved fine-tuned model
@@ -49,7 +48,6 @@ brahmi_ocr_project/
 │
 ├── webapp/                     ← future frontend
 ├── Capstone_Brahmi_Inscriptions/   reference repo
-├── NotoSansBrahmi-Regular.ttf      Brahmi font for dataset generation
 ├── requirements.txt
 └── README.md
 ```
@@ -66,25 +64,22 @@ venv\Scripts\activate          # Windows
 pip install -r requirements.txt
 ```
 
-### 2. Generate the synthetic dataset
+### 2. Prepare the dataset
 
 ```bash
-# Full dataset (~20,000 images)
-python dataset/generate_synthetic.py
-
-# Small test run (25 images)
-python dataset/generate_synthetic.py --num_chars 10 --num_words 10 --num_phrases 5
+# Required: map.json + image folders
+dataset/
+  map.json
+  1Vowels/
+  2Consonants/
+  3Numbers/
+  4Extras/
+  5Words_Phrases/
 ```
 
-Options:
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--num_chars` | 5000 | Number of single-character images |
-| `--num_words` | 10000 | Number of word images (2–6 chars) |
-| `--num_phrases` | 5000 | Number of phrase images (5–15 chars) |
-| `--img_size` | 384 | Image width and height in pixels |
-| `--font_size` | 64 | Base font size |
-| `--seed` | 42 | Random seed for reproducibility |
+`map.json` entries support:
+- Fixed label folder: every image in folder gets the mapped `char`
+- Mixed folder (`char = "MIXED"`): labels come from `labels.txt` / `labels.tsv` / `labels.csv` / `annotations.*`
 
 ### 3. Train the model
 
@@ -101,8 +96,13 @@ Options:
 | `--lr` | 5e-5 | Learning rate |
 | `--data_dir` | `dataset/` | Dataset directory |
 | `--output_dir` | `model/brahmi_trocr/` | Model save directory |
+| `--train_ratio` | 0.8 | Train split ratio |
+| `--val_ratio` | 0.1 | Validation split ratio |
+| `--test_ratio` | 0.1 | Test split ratio |
+| `--image_size` | 384 | Square padded image size |
 
 The script automatically uses **FP16** if a CUDA GPU is available.
+It also prints dataset breakdown (characters/ngrams, words, phrases, long sentences).
 
 ### 4. Run inference
 
@@ -111,6 +111,9 @@ python inference/predict.py --image path/to/brahmi_image.png
 
 # With preprocessing (recommended for real stone/manuscript images)
 python inference/predict.py --image path/to/image.png --preprocess
+
+# Full debug JSON for backend/UI
+python inference/predict.py --image path/to/image.png --preprocess --debug --json_out result.json
 ```
 
 ## Tech Stack
@@ -119,16 +122,17 @@ python inference/predict.py --image path/to/image.png --preprocess
 |-----------|-----------|
 | OCR Model | TrOCR (`microsoft/trocr-small-printed`) |
 | Training | PyTorch + HuggingFace Transformers |
-| Dataset | Synthetic (NotoSansBrahmi font) |
+| Dataset | Curated map.json-driven hierarchy |
 | Image Processing | OpenCV, Pillow |
 | Backend (future) | FastAPI |
 | Frontend (future) | React |
 
 ## Dataset Format
 
-- **`dataset/images/`** — PNG images of Brahmi text
-- **`dataset/labels.txt`** — Tab-separated: `img_000001.png\t𑀓𑀭`
-- **`dataset/splits/`** — Train (80%) / Val (10%) / Test (10%)
+- **`dataset/map.json`** — canonical label/folder mapping (single source of truth)
+- **Fixed class folders** — labels taken directly from mapped `char`
+- **Mixed text folder(s)** — labels read from `labels.*` / `annotations.*` manifest
+- **Train/Val/Test** — generated at runtime by `training/dataset_loader.py` using configured split ratios
 
 ## Reference
 

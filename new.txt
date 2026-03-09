@@ -10,3 +10,11 @@ If 1.jpg is a photo of a real stone or paper, use this. It will clean up the noi
 
 powershell
 python inference/predict.py --image 1.jpg --model_dir model/brahmi_trocr --preprocess
+
+
+
+python inference/predict.py --image <path> --preprocess --debug --json_out result.json
+
+
+python dataset/validate_dataset.py --data_dir dataset --json_out dataset_validation_report.json
+python dataset/validate_dataset.py --data_dir dataset --strict
