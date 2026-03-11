@@ -1,0 +1,106 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@300;400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 40 20% 97%;
+    --foreground: 30 10% 15%;
+
+    --card: 40 15% 95%;
+    --card-foreground: 30 10% 15%;
+
+    --popover: 40 20% 97%;
+    --popover-foreground: 30 10% 15%;
+
+    --primary: 35 45% 42%;
+    --primary-foreground: 40 20% 97%;
+
+    --secondary: 38 12% 90%;
+    --secondary-foreground: 30 10% 25%;
+
+    --muted: 35 10% 92%;
+    --muted-foreground: 30 8% 52%;
+
+    --accent: 35 50% 48%;
+    --accent-foreground: 40 20% 97%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 35 12% 88%;
+    --input: 35 12% 88%;
+    --ring: 35 45% 42%;
+
+    --radius: 0.375rem;
+
+    --font-display: 'Cormorant Garamond', serif;
+    --font-body: 'Inter', sans-serif;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display);
+  }
+  .font-body {
+    font-family: var(--font-body);
+  }
+}
+
+/* Radar sweep animation for restoration effect */
+@keyframes radar-sweep {
+  0% {
+    background: linear-gradient(
+      0deg,
+      transparent 0%,
+      hsl(35 45% 42% / 0.08) 45%,
+      hsl(35 45% 42% / 0.15) 50%,
+      hsl(35 45% 42% / 0.08) 55%,
+      transparent 100%
+    );
+  }
+  100% {
+    background: linear-gradient(
+      360deg,
+      transparent 0%,
+      hsl(35 45% 42% / 0.08) 45%,
+      hsl(35 45% 42% / 0.15) 50%,
+      hsl(35 45% 42% / 0.08) 55%,
+      transparent 100%
+    );
+  }
+}
+
+@keyframes scan-line {
+  0% { top: -2px; }
+  100% { top: 100%; }
+}
+
+.scan-line-animation {
+  animation: scan-line 2.5s ease-in-out infinite;
+}
