@@ -1,18 +1,29 @@
 import { useState, useCallback } from "react";
 import InputModule from "@/components/InputModule";
 import OutputModule from "@/components/OutputModule";
-
-const FAKE_PROCESSING_DELAY = 3500;
+import type { OCRResponse } from "@/types/ocr";
 
 const Index = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
-  const [ocrResult, setOcrResult] = useState<any>(null);
+  const [ocrResult, setOcrResult] = useState<OCRResponse | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [activeLineIndex, setActiveLineIndex] = useState<number | null>(null);
+
+  const handleReset = useCallback(() => {
+    setIsProcessing(false);
+    setIsComplete(false);
+    setOcrResult(null);
+    setErrorMessage(null);
+    setActiveLineIndex(null);
+  }, []);
 
   const handleImageUploaded = useCallback(async (file: File, _url: string) => {
     setIsProcessing(true);
     setIsComplete(false);
     setOcrResult(null);
+    setErrorMessage(null);
+    setActiveLineIndex(null);
 
     try {
       const formData = new FormData();
@@ -27,11 +38,18 @@ const Index = () => {
         throw new Error("API request failed");
       }
 
-      const data = await response.json();
+      const data: OCRResponse = await response.json();
       setOcrResult(data);
+      const firstLineIndex =
+        data.lines && data.lines.length > 0 ? data.lines[0].line_index : null;
+      setActiveLineIndex(firstLineIndex);
     } catch (error) {
       console.error("Error during OCR:", error);
-      // Optional: Add a toast notification for error
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "OCR failed. Check whether the backend server is running.",
+      );
     } finally {
       setIsProcessing(false);
       setIsComplete(true);
@@ -45,6 +63,12 @@ const Index = () => {
         <InputModule
           onImageUploaded={handleImageUploaded}
           isProcessing={isProcessing}
+          isComplete={isComplete}
+          ocrResult={ocrResult}
+          errorMessage={errorMessage}
+          activeLineIndex={activeLineIndex}
+          onActiveLineChange={setActiveLineIndex}
+          onClear={handleReset}
         />
       </div>
 
@@ -54,6 +78,9 @@ const Index = () => {
           isProcessing={isProcessing}
           isComplete={isComplete}
           ocrResult={ocrResult}
+          errorMessage={errorMessage}
+          activeLineIndex={activeLineIndex}
+          onActiveLineChange={setActiveLineIndex}
         />
       </div>
 

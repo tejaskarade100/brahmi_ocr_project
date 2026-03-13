@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import math
 import os
 import random
 import sys
@@ -24,7 +25,7 @@ from transformers import AddedToken, TrOCRProcessor, VisionEncoderDecoderModel, 
 # Allow imports from project root
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from training.dataset_loader import BrahmiDataset, create_weighted_sampler
+from training.dataset_loader import BrahmiDataset, create_weighted_sampler, summarize_samples
 
 
 def parse_args():
@@ -280,6 +281,8 @@ def main():
         if args.max_train_samples > 0:
             train_ds.samples = train_ds.samples[:args.max_train_samples]
             val_ds.samples = val_ds.samples[:args.max_train_samples]
+            train_ds.summary = summarize_samples(train_ds.samples)
+            val_ds.summary = summarize_samples(val_ds.samples)
 
         train_parts.append(train_ds)
         val_parts.append(val_ds)
@@ -317,8 +320,13 @@ def main():
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr)
     scaler = torch.amp.GradScaler("cuda") if use_fp16 else None
 
-    total_steps = len(train_loader) * args.epochs
-    scheduler = get_cosine_schedule_with_warmup(optimizer, num_warmup_steps=int(total_steps * args.warmup_ratio), num_training_steps=total_steps)
+    steps_per_epoch = max(1, math.ceil(len(train_loader) / max(args.gradient_accumulation_steps, 1)))
+    total_steps = steps_per_epoch * args.epochs
+    scheduler = get_cosine_schedule_with_warmup(
+        optimizer,
+        num_warmup_steps=int(total_steps * args.warmup_ratio),
+        num_training_steps=total_steps,
+    )
 
     best_val_cer = float("inf")
     patience_counter = 0
@@ -347,7 +355,7 @@ def main():
         else:
             patience_counter += 1
             if patience_counter >= args.patience:
-                print(f"\\nEarly stopping triggered at epoch {epoch}.")
+                print(f"\nEarly stopping triggered at epoch {epoch}.")
                 break
 
 if __name__ == "__main__":

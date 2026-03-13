@@ -59,6 +59,12 @@ def count_images_in_folder_mixed(abs_folder: str) -> dict:
                 data = json.load(f)
             items = data.get("entries", data.get("items", []))
             for item in items:
+                file_ref = str(item.get("file", "")).strip()
+                if not file_ref:
+                    continue
+                image_path = os.path.join(abs_folder, file_ref.replace("/", os.sep))
+                if not os.path.isfile(image_path) or not _is_image_file(image_path):
+                    continue
                 seq_type = item.get("sequence_type")
                 if not seq_type:
                     words = len([w for w in item.get("text_brahmi", "").split() if w])
@@ -164,7 +170,7 @@ def main():
         writer.writeheader()
         writer.writerows(rows)
 
-    print(f"\\n--- Balancer Summary ---")
+    print(f"\n--- Balancer Summary ---")
     print(f"Total existing images : {total_existing}")
     print(f"Total images to build : {total_needed}")
     print(f"Manifest written to   : {os.path.relpath(out_path)}")

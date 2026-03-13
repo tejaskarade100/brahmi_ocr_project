@@ -112,7 +112,7 @@ def _read_label_lines_enriched(label_file_path: str) -> Iterable[Tuple[str, str,
 
     delimiter = ","
     if ext in {".txt", ".tsv"}:
-        delimiter = "\\t"
+        delimiter = "\t"
 
     with open(label_file_path, "r", encoding="utf-8") as f:
         if delimiter == ",":
@@ -130,8 +130,8 @@ def _read_label_lines_enriched(label_file_path: str) -> Iterable[Tuple[str, str,
             line = raw.strip()
             if not line:
                 continue
-            if "\\t" in line:
-                image_rel, text = line.split("\\t", maxsplit=1)
+            if "\t" in line:
+                image_rel, text = line.split("\t", maxsplit=1)
             elif "," in line:
                 image_rel, text = line.split(",", maxsplit=1)
             else:
@@ -320,7 +320,7 @@ def summarize_samples(samples: Sequence[SampleRecord]) -> Dict:
         category_counts[category] = category_counts.get(category, 0) + 1
 
         text = record.label_text
-        char_len = len(text.replace(" ", "").replace("\\n", ""))
+        char_len = len(text.replace(" ", "").replace("\n", ""))
         word_len = len([w for w in text.split() if w])
 
         char_length_hist[char_len] = char_length_hist.get(char_len, 0) + 1
@@ -328,6 +328,7 @@ def summarize_samples(samples: Sequence[SampleRecord]) -> Dict:
 
     return {
         "total_samples": len(samples),
+        "unique_labels": len({record.label_text for record in samples}),
         "category_counts": category_counts,
         "char_length_histogram": dict(sorted(char_length_hist.items())),
         "word_count_histogram": dict(sorted(word_count_hist.items())),
@@ -424,27 +425,45 @@ class BrahmiDataset(Dataset):
         return {"pixel_values": pixel_values, "labels": labels, "category_ids": category_ids}
 
 
-def create_weighted_sampler(dataset: BrahmiDataset) -> WeightedRandomSampler:
-    """Builds a WeightedRandomSampler that balances categories perfectly."""
-    counts = dataset.summary["category_counts"]
-    total = sum(counts.values())
-    
-    # Weight is inversely proportional to class size, normalized
-    cat_weights = {}
-    for cat, count in counts.items():
-        if count > 0:
-            cat_weights[cat] = total / count
-        else:
-            cat_weights[cat] = 0.0
+def _iter_dataset_samples(dataset) -> List[SampleRecord]:
+    if isinstance(dataset, BrahmiDataset):
+        return list(dataset.samples)
 
-    sample_weights = []
-    for sample in dataset.samples:
-        cat = _classify_text_shape(sample)
-        sample_weights.append(cat_weights[cat])
+    if isinstance(dataset, ConcatDataset):
+        merged: List[SampleRecord] = []
+        for subdataset in dataset.datasets:
+            if not hasattr(subdataset, "samples"):
+                raise TypeError("Weighted sampling requires datasets with a .samples attribute")
+            merged.extend(subdataset.samples)
+        return merged
+
+    raise TypeError("Unsupported dataset type for weighted sampling")
+
+
+def create_weighted_sampler(dataset) -> WeightedRandomSampler:
+    """Build a category-balanced sampler for BrahmiDataset or ConcatDataset."""
+    samples = _iter_dataset_samples(dataset)
+    counts = {
+        "characters_ngrams": 0,
+        "words": 0,
+        "phrases": 0,
+        "long_sentences": 0,
+    }
+
+    for sample in samples:
+        counts[_classify_text_shape(sample)] += 1
+
+    total = max(len(samples), 1)
+    cat_weights = {
+        cat: (total / count) if count > 0 else 0.0
+        for cat, count in counts.items()
+    }
+
+    sample_weights = [cat_weights[_classify_text_shape(sample)] for sample in samples]
 
     import torch
     return WeightedRandomSampler(
         weights=torch.DoubleTensor(sample_weights),
-        num_samples=len(sample_weights), 
-        replacement=True
+        num_samples=len(sample_weights),
+        replacement=True,
     )

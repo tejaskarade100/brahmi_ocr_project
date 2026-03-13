@@ -188,7 +188,7 @@ def determine_preprocessing_mode(image: np.ndarray) -> str:
 
 def preprocess_image(
     path: str,
-    target_size: tuple = (384, 384),
+    target_size: tuple | None = (384, 384),
     threshold_method: str | None = None,
     return_debug: bool = False,
 ):
@@ -221,7 +221,11 @@ def preprocess_image(
 
     debug = {
         "input_path": path,
-        "target_size": {"width": int(target_size[0]), "height": int(target_size[1])},
+        "target_size": (
+            {"width": int(target_size[0]), "height": int(target_size[1])}
+            if target_size is not None
+            else None
+        ),
         "steps": [],
         "padding": {},
         "auto_mode_resolved": threshold_method if threshold_method else "none",
@@ -243,14 +247,24 @@ def preprocess_image(
                 }
             )
 
-    resized, pad_meta = resize_with_padding(processed, target_size=target_size)
-    rgb = cv2.cvtColor(resized, cv2.COLOR_GRAY2RGB)
+    if target_size is not None:
+        resized, pad_meta = resize_with_padding(processed, target_size=target_size)
+        rgb = cv2.cvtColor(resized, cv2.COLOR_GRAY2RGB)
+        pil_img = Image.fromarray(rgb)
+
+        if return_debug:
+            debug["steps"].append({"name": "resize_with_padding", "stats": _array_stats(resized)})
+            debug["steps"].append({"name": "final_rgb", "stats": _array_stats(rgb)})
+            debug["padding"] = pad_meta
+            return pil_img, debug
+
+        return pil_img
+
+    rgb = cv2.cvtColor(processed, cv2.COLOR_GRAY2RGB)
     pil_img = Image.fromarray(rgb)
 
     if return_debug:
-        debug["steps"].append({"name": "resize_with_padding", "stats": _array_stats(resized)})
         debug["steps"].append({"name": "final_rgb", "stats": _array_stats(rgb)})
-        debug["padding"] = pad_meta
         return pil_img, debug
 
     return pil_img

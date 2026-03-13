@@ -1,11 +1,11 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-from typing import Dict, Any
+from typing import Dict, Any, List
 import os
 import sys
 import shutil
 import uuid
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 # Add parent directory to path to import inference module
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -56,7 +56,11 @@ class OCRResponse(BaseModel):
     devanagari_text: str
     hindi_translation: str
     english_translation: str
-    debug_info: Dict[str, Any] = {}
+    debug_info: Dict[str, Any] = Field(default_factory=dict)
+    lines: List[Dict[str, Any]] = Field(default_factory=list)
+    token_trace: List[Dict[str, Any]] = Field(default_factory=list)
+    character_trace: List[Dict[str, Any]] = Field(default_factory=list)
+    base64_image: str = ""
     
 @app.get("/")
 def read_root():
@@ -80,9 +84,6 @@ async def upload_image(file: UploadFile = File(...)):
         shutil.copyfileobj(file.file, buffer)
         
     try:
-        brahmi_text = ""
-        debug_info = {}
-        
         # Run inference if model is loaded
         if ModelConfig.processor and ModelConfig.model:
             print(f"Running OCR on {temp_path}...")
@@ -91,15 +92,29 @@ async def upload_image(file: UploadFile = File(...)):
                 processor=ModelConfig.processor,
                 model=ModelConfig.model,
                 device=ModelConfig.device,
-                preprocess=False, # Keeping false by default as per predict.py usage unless specified
+                preprocess=True, # Enable preprocessing so frontend gets cleaned image
                 image_size=384,
-                debug=False
+                debug=True, # Enable trace for character mapping
+                multiline=True, # Enable new line segmentation
+                return_base64=True # Enable sending image back to UI
             )
             brahmi_text = result.get('predicted_text', '')
-            debug_info = result.get('text_breakdown', {})
+            debug_info = {
+                "text_breakdown": result.get("text_breakdown", {}),
+                "preprocess": result.get("preprocess", {}),
+            }
+            lines_data = result.get('lines', [])
+            token_trace = result.get("token_trace", [])
+            character_trace = result.get("character_trace", [])
+            base64_data = result.get('base64_image', '')
         else:
             # Fallback for testing when model isn't available
             brahmi_text = "𑀅𑀆𑀇𑀓𑀔"
+            debug_info = {}
+            lines_data = []
+            token_trace = []
+            character_trace = []
+            base64_data = ""
             print("WARNING: Using dummy text because model is not loaded")
             
         print(f"OCR Result: {brahmi_text}")
@@ -116,7 +131,11 @@ async def upload_image(file: UploadFile = File(...)):
             devanagari_text=devanagari_text,
             hindi_translation=translations.get("hindi", ""),
             english_translation=translations.get("english", ""),
-            debug_info=debug_info
+            debug_info=debug_info,
+            lines=lines_data,
+            token_trace=token_trace,
+            character_trace=character_trace,
+            base64_image=base64_data
         )
         
     finally:

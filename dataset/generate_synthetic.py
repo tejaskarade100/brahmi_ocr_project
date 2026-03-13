@@ -73,7 +73,7 @@ def build_mixed_token_pools(rows: List[Dict[str, str]]) -> Tuple[List[str], List
 
     for row in rows:
         token = row["label_text"].strip()
-        folder = row["folder"].replace("\\\\", "/")
+        folder = row["folder"].replace("\\", "/")
         if not _is_valid_mixed_token(token):
             continue
         if folder.startswith("2Consonants/"):
@@ -121,15 +121,15 @@ class _HarfBuzzRenderer:
 
     def render(self, text: str, padding: int) -> Image.Image:
         # Multiline support
-        if "\\n" in text:
-            lines = text.split("\\n")
+        if "\n" in text:
+            lines = text.split("\n")
             line_images = [self.render(line, padding) for line in lines if line.strip()]
             if not line_images:
                 return Image.new("RGB", (64, 64), color="white")
             max_w = max(img.width for img in line_images)
             total_h = sum(img.height for img in line_images) + padding * (len(line_images) - 1)
-            
-            canvas = Image.new("RGB", (max_w, total_h), color="white")
+
+            canvas = Image.new("RGB", (max_w + padding * 2, total_h), color="white")
             y_offset = 0
             for img in line_images:
                 canvas.paste(img, (padding, y_offset))
@@ -213,6 +213,72 @@ def _get_hb_renderer(font_path: str, font_size: int) -> Optional[_HarfBuzzRender
 
 class StyleEngine:
     @staticmethod
+    def _perspective_warp(image: Image.Image, rng: random.Random, max_distortion: float = 0.15) -> Image.Image:
+        width, height = image.size
+        # Add random margins before warping, else we cut off characters
+        x_m = int(width * max_distortion)
+        y_m = int(height * max_distortion)
+        
+        # We start with the 4 corners of the source image
+        src_points = [(0, 0), (width, 0), (width, height), (0, height)]
+        
+        # We slightly randomly perturb the destination corners
+        dst_points = [
+            (rng.randint(0, x_m), rng.randint(0, y_m)), # Top-Left
+            (width - rng.randint(0, x_m), rng.randint(0, y_m)), # Top-Right
+            (width - rng.randint(0, x_m), height - rng.randint(0, y_m)), # Bottom-Right
+            (rng.randint(0, x_m), height - rng.randint(0, y_m)) # Bottom-Left
+        ]
+        
+        def find_coeffs(source_coords, target_coords):
+            matrix = []
+            for s, t in zip(source_coords, target_coords):
+                matrix.append([t[0], t[1], 1, 0, 0, 0, -s[0]*t[0], -s[0]*t[1]])
+                matrix.append([0, 0, 0, t[0], t[1], 1, -s[1]*t[0], -s[1]*t[1]])
+            A = np.matrix(matrix, dtype=float)
+            B = np.array(source_coords).reshape(8)
+            res = np.dot(np.linalg.inv(A.T * A) * A.T, B)
+            return np.array(res).reshape(8)
+            
+        coeffs = find_coeffs(src_points, dst_points)
+        return image.transform((width, height), Image.PERSPECTIVE, coeffs, Image.BICUBIC, fillcolor=(255, 255, 255))
+
+    @staticmethod
+    def _apply_vignette(image: np.ndarray, rng: random.Random) -> np.ndarray:
+        rows, cols = image.shape[:2]
+        # Generate random center for the vignette (not always perfectly in the middle)
+        center_x = cols / 2 + rng.uniform(-cols * 0.2, cols * 0.2)
+        center_y = rows / 2 + rng.uniform(-rows * 0.2, rows * 0.2)
+        
+        # Create a meshgrid for the mask
+        x, y = np.meshgrid(np.arange(cols), np.arange(rows))
+        
+        # Distance from center
+        radius = np.sqrt((x - center_x) ** 2 + (y - center_y) ** 2)
+        
+        # Normalize radius. Max distance roughly corner to center.
+        max_dist = np.sqrt(cols ** 2 + rows ** 2) / 2
+        radius = radius / max_dist
+        
+        # Falloff curve
+        strength = rng.uniform(0.3, 1.2)
+        mask = 1 - (radius ** strength)
+        mask = np.clip(mask, rng.uniform(0.3, 0.6), 1.0)
+        
+        if len(image.shape) == 3:
+            mask = mask[:, :, np.newaxis]
+            
+        return np.clip(image * mask, 0, 255).astype(np.uint8)
+
+    @staticmethod
+    def _adjust_contrast_brightness(image: np.ndarray, rng: random.Random) -> np.ndarray:
+        # alpha controls contrast (1.0 is original, >1.0 is higher, <1.0 is lower)
+        # beta controls brightness (additive)
+        alpha = rng.uniform(0.6, 1.4)
+        beta = rng.randint(-30, 30)
+        return cv2.convertScaleAbs(image, alpha=alpha, beta=beta)
+        
+    @staticmethod
     def _elastic_distortion(image: np.ndarray, alpha: float, sigma: float, rng: random.Random) -> np.ndarray:
         if 'map_coordinates' not in globals():
             return image
@@ -237,12 +303,16 @@ class StyleEngine:
 
     @classmethod
     def apply_clean(cls, img: Image.Image, rng: random.Random) -> Image.Image:
+        # Add slight perspective warp to clean images occasionally
+        if rng.random() > 0.5:
+            img = cls._perspective_warp(img, rng, max_distortion=0.05)
         angle = rng.uniform(-3, 3)
         img = img.rotate(angle, resample=Image.BICUBIC, expand=True, fillcolor=(255, 255, 255))
         return img
 
     @classmethod
     def apply_manuscript(cls, img: Image.Image, rng: random.Random) -> Image.Image:
+        img = cls._perspective_warp(img, rng, max_distortion=0.08)
         angle = rng.uniform(-8, 8)
         img = img.rotate(angle, resample=Image.BICUBIC, expand=True, fillcolor=(240, 240, 230))
         np_img = np.array(img.convert('L'))
@@ -250,12 +320,20 @@ class StyleEngine:
         if rng.random() > 0.5:
             np_img = cv2.erode(np_img, kernel, iterations=1)
         np_img = cls._add_noise(np_img, 0.1, rng)
+        
+        # Apply vignette
+        if rng.random() > 0.3:
+            np_img = cls._apply_vignette(np_img, rng)
+            
+        np_img = cls._adjust_contrast_brightness(np_img, rng)
+        
         img = Image.fromarray(np_img).convert('RGB')
         img = img.filter(ImageFilter.GaussianBlur(rng.uniform(0.5, 1.2)))
         return img
 
     @classmethod
     def apply_stone(cls, img: Image.Image, rng: random.Random) -> Image.Image:
+        img = cls._perspective_warp(img, rng, max_distortion=0.15)
         angle = rng.uniform(-15, 15)
         bg_color = (rng.randint(150, 200), rng.randint(150, 200), rng.randint(150, 200))
         img = img.rotate(angle, resample=Image.BICUBIC, expand=True, fillcolor=bg_color)
@@ -268,9 +346,16 @@ class StyleEngine:
         else:
             np_img = cv2.erode(np_img, kernel, iterations=1)
         np_img = cls._add_noise(np_img, 0.3, rng)
+        
+        # Apply strong non-uniform shadows/vignette
+        np_img = cls._apply_vignette(np_img, rng)
+        
         h, w = np_img.shape
         gradient = np.tile(np.linspace(1.0, rng.uniform(0.4, 0.8), w), (h, 1))
         np_img = np.clip(np_img * gradient, 0, 255).astype(np.uint8)
+        
+        np_img = cls._adjust_contrast_brightness(np_img, rng)
+        
         img = Image.fromarray(np_img).convert('RGB')
         img = img.filter(ImageFilter.GaussianBlur(rng.uniform(1.0, 2.0)))
         return img
@@ -352,7 +437,7 @@ def generate_mixed_sequence(
             end_idx = current_idx + words_per_line if i < num_lines - 1 else len(words)
             lines.append(" ".join(words[current_idx:end_idx]))
             current_idx = end_idx
-        text = "\\n".join(lines)
+        text = "\n".join(lines)
     else:
         text = " ".join(words)
         
@@ -374,12 +459,37 @@ def process_manifest(manifest_path: str, data_dir: str, dry_run: bool = False, b
     total_generated = 0
     # Group rows by folder for writing labels.json properly
     folder_entries_map = {}
+    mixed_folders_to_reconcile = set()
+
+    def load_existing_valid_entries(folder_abs: str) -> List[Dict]:
+        json_path = os.path.join(folder_abs, "labels.json")
+        if not os.path.exists(json_path):
+            return []
+
+        try:
+            with open(json_path, "r", encoding="utf-8") as jf:
+                existing_data = json.load(jf)
+        except Exception:
+            return []
+
+        valid_entries = []
+        for item in existing_data.get("entries", existing_data.get("items", [])):
+            file_ref = str(item.get("file", "")).strip()
+            if not file_ref:
+                continue
+            image_path = os.path.join(folder_abs, file_ref.replace("/", os.sep))
+            if os.path.isfile(image_path):
+                valid_entries.append(item)
+        return valid_entries
 
     for row in rows:
         folder_rel = row["folder"]
         label_text = row.get("label_text", "")
         seq_type = row.get("sequence_type", "characters_ngrams")
         need_generate = int(row.get("need_generate", 0))
+
+        if label_text == "MIXED":
+            mixed_folders_to_reconcile.add(folder_rel)
         
         if dry_run:
             need_generate = min(batch_limit, need_generate)
@@ -463,22 +573,24 @@ def process_manifest(manifest_path: str, data_dir: str, dry_run: bool = False, b
                     break
 
     # Write combined labels.json for mixed folders
-    for folder_rel, entries in folder_entries_map.items():
-        if not entries: continue
+    for folder_rel in sorted(mixed_folders_to_reconcile):
         out_dir = os.path.join(data_dir, folder_rel)
         json_path = os.path.join(out_dir, "labels.json")
-        existing_data = {"version": "1.0", "entries": []}
-        if os.path.exists(json_path):
-            try:
-                with open(json_path, 'r', encoding='utf-8') as jf:
-                    existing_data = json.load(jf)
-            except Exception:
-                pass
-        existing_data["entries"].extend(entries)
-        with open(json_path, 'w', encoding='utf-8') as jf:
-            json.dump(existing_data, jf, indent=2, ensure_ascii=False)
+        existing_entries = load_existing_valid_entries(out_dir)
+        new_entries = folder_entries_map.get(folder_rel, [])
+        existing_files = {str(item.get("file", "")).strip() for item in existing_entries}
 
-    print(f"\\nGeneration Complete. Generated {total_generated} images.")
+        merged_entries = list(existing_entries)
+        for entry in new_entries:
+            file_ref = str(entry.get("file", "")).strip()
+            if file_ref and file_ref not in existing_files:
+                merged_entries.append(entry)
+                existing_files.add(file_ref)
+
+        with open(json_path, "w", encoding="utf-8") as jf:
+            json.dump({"version": "1.0", "entries": merged_entries}, jf, indent=2, ensure_ascii=False)
+
+    print(f"\nGeneration Complete. Generated {total_generated} images.")
 
 
 def main():

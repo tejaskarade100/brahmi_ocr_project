@@ -13,12 +13,14 @@ Image → Preprocessing → OCR (Brahmi Unicode) → Transliteration (Devanagari
 | Stage | Status |
 |-------|--------|
 | Map-driven dataset loading | ✅ Implemented |
+| Balanced synthetic generation | ✅ Implemented |
 | Image preprocessing | ✅ Implemented |
 | TrOCR fine-tuning | ✅ Implemented |
-| Inference | ✅ Implemented |
-| Transliteration | 🔜 Planned |
-| Translation | 🔜 Planned |
-| Web app | 🔜 Planned |
+| Multiline inference | ✅ Implemented |
+| Transliteration | ✅ Implemented |
+| Translation | ✅ Implemented |
+| FastAPI backend | ✅ Implemented |
+| React web app | ✅ Implemented |
 
 ## Project Structure
 
@@ -46,8 +48,8 @@ brahmi_ocr_project/
 ├── utils/
 │   └── preprocess.py           ← image preprocessing utilities
 │
-├── webapp/                     ← future frontend
-├── Capstone_Brahmi_Inscriptions/   reference repo
+├── backend/                    ← FastAPI OCR API
+├── webapp/ancient-insight-main/← React frontend with OCR diagnostics
 ├── requirements.txt
 └── README.md
 ```
@@ -89,8 +91,8 @@ Use this exact order:
 # A) Pre-check current dataset structure/composition
 python dataset/validate_dataset.py --data_dir dataset --json_out dataset/reports/precheck.json
 
-# B) Build generation targets from map.json + current folder counts
-python dataset/build_targets.py --data_dir dataset --map_file map.json --target_count 1000 --out_csv dataset/reports/targets_manifest.csv
+# B) Build balanced generation targets from map.json + current folder counts
+python dataset/build_targets.py --data_dir dataset --map_file map.json --out_csv dataset/reports/targets_manifest.csv
 
 # C) Dry run (small batch) to verify styles + label generation
 python dataset/generate_synthetic.py --data_dir dataset --manifest dataset/reports/targets_manifest.csv --dry_run --batch_limit 5
@@ -107,13 +109,15 @@ python dataset/validate_dataset.py --data_dir dataset --json_out dataset/reports
 
 Notes:
 - `generate_synthetic.py` now uses HarfBuzz shaping when available to correctly place Brahmi dependent vowel signs.
+- Mixed-sequence generation is balanced across words, phrases, sentences, and multiline text.
+- `labels.json` is reconciled against files on disk before quota calculation, so deleted images do not poison future target counts.
 - If HarfBuzz is unavailable, generation falls back to Pillow and prints a warning.
 - If `postcheck.py` reports underfilled classes after dedupe, rerun steps `B -> D -> E`.
 
 ### 4. Train the model
 
 ```bash
-python training/train.py
+python training/train.py --balanced_sampling --gradient_accumulation_steps 8 --image_size 384
 ```
 
 Options:
@@ -129,9 +133,15 @@ Options:
 | `--val_ratio` | 0.1 | Validation split ratio |
 | `--test_ratio` | 0.1 | Test split ratio |
 | `--image_size` | 384 | Square padded image size |
+| `--gradient_accumulation_steps` | `1` | Effective batch-size scaling for small GPUs |
+| `--balanced_sampling` | off | Weighted sampling across chars/words/phrases/long sequences |
+| `--max_fixed_per_class` | `0` | Runtime cap per fixed-label folder (`0` = no cap) |
+| `--max_words` | `0` | Runtime cap for mixed single-word samples |
+| `--max_phrases` | `0` | Runtime cap for mixed phrase samples |
+| `--max_long_sentences` | `0` | Runtime cap for sentence/multiline samples |
 
 The script automatically uses **FP16** if a CUDA GPU is available.
-It also prints dataset breakdown (characters/ngrams, words, phrases, long sentences).
+It also prints dataset breakdown (characters/ngrams, words, phrases, long sentences) and category-wise validation metrics to catch sequence-collapse early.
 
 ### 5. Run inference
 
@@ -162,6 +172,12 @@ Debug + JSON trace:
 python inference/predict.py --image path/to/image.png --preprocess --threshold_method auto --debug --json_out result.json
 ```
 
+Multiline page OCR:
+
+```bash
+python inference/predict.py --image path/to/page.png --preprocess --multiline --debug --json_out result.json
+```
+
 Resolution sweep (helpful for difficult images):
 
 ```bash
@@ -170,7 +186,38 @@ python inference/predict.py --image path/to/image.png --preprocess --threshold_m
 python inference/predict.py --image path/to/image.png --preprocess --threshold_method auto --image_size 512
 ```
 
-### 6. Training on Free GPU Cloud Platforms (Colab / Kaggle)
+### 6. Run the backend API
+
+```bash
+cd backend
+python -m uvicorn main:app --reload --port 8000
+```
+
+The `/api/upload` endpoint returns:
+- Brahmi text
+- Devanagari transliteration
+- Hindi and English translation
+- preprocessing metadata
+- line bounding boxes
+- token and character traces
+- base64-encoded processed image for frontend overlays
+
+### 7. Run the frontend
+
+```bash
+cd webapp/ancient-insight-main
+npm install
+npm run dev
+```
+
+The frontend currently supports:
+- original vs processed image view
+- detected line overlays on the processed image
+- line-by-line OCR diagnostics
+- token and character trace inspection
+- translated output display
+
+### 8. Training on Free GPU Cloud Platforms (Colab / Kaggle)
 
 Because training TrOCR requires significant compute, you can use the provided Jupyter Notebooks to seamlessly train on free GPUs without losing your progress!
 
@@ -197,10 +244,10 @@ Kaggle offers **30 hours per week of free T4x2 GPU time**.
 |-----------|-----------|
 | OCR Model | TrOCR (`microsoft/trocr-small-printed`) |
 | Training | PyTorch + HuggingFace Transformers |
-| Dataset | Curated map.json-driven hierarchy |
+| Dataset | Curated map.json-driven hierarchy with balanced synthetic generation |
 | Image Processing | OpenCV, Pillow |
-| Backend (future) | FastAPI |
-| Frontend (future) | React |
+| Backend | FastAPI |
+| Frontend | React + Vite + TypeScript |
 
 ## Dataset Format
 

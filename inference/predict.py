@@ -10,13 +10,17 @@ Run OCR prediction on a Brahmi image and return either:
 from __future__ import annotations
 
 import argparse
+import base64
+import io
 import json
 import math
 import os
 import sys
 import unicodedata
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
+import cv2
+import numpy as np
 import torch
 from PIL import Image
 from transformers import TrOCRProcessor, VisionEncoderDecoderModel
@@ -47,9 +51,12 @@ def load_trained_model(model_dir: str, device: str | None = None):
 
 
 def _category_guess(text: str) -> str:
-    words = [w for w in text.split(" ") if w]
+    line_count = len([line for line in text.splitlines() if line.strip()])
+    words = [w for w in text.split() if w]
     word_count = len(words)
-    char_count = len(text.replace(" ", ""))
+    char_count = len(text.replace(" ", "").replace("\n", ""))
+    if line_count > 1:
+        return "multiline"
     if word_count <= 1 and char_count <= 2:
         return "character_or_ngram"
     if word_count <= 1:
@@ -109,14 +116,77 @@ def _token_trace(
 
 
 def _text_breakdown(text: str) -> Dict:
-    words = [w for w in text.split(" ") if w]
+    words = [w for w in text.split() if w]
+    lines = [line for line in text.splitlines() if line.strip()]
     return {
-        "character_count": len(text.replace(" ", "")),
+        "character_count": len(text.replace(" ", "").replace("\n", "")),
         "word_count": len(words),
+        "line_count": len(lines) if lines else 1,
+        "line_break_count": text.count("\n"),
         "space_count": text.count(" "),
         "word_char_counts": [len(w) for w in words],
         "category_guess": _category_guess(text),
     }
+
+
+def _segment_lines(image: Image.Image, min_line_height: int = 10, min_gap: int = 5) -> List[Tuple[int, int, int, int]]:
+    """
+    Given a PIL Image, converts to grayscale, applies a binary threshold,
+    and calculates horizontal projection profiles to segment text lines.
+    Returns a list of bounding boxes: (x_min, y_min, x_max, y_max)
+    """
+    cv_img = np.array(image.convert("L"))
+    _, thresh = cv2.threshold(cv_img, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+
+    row_activity = np.count_nonzero(thresh, axis=1)
+    active_threshold = max(2, int(thresh.shape[1] * 0.01))
+
+    lines = []
+    in_line = False
+    start_y = 0
+
+    for y, val in enumerate(row_activity):
+        if not in_line and val >= active_threshold:
+            in_line = True
+            start_y = y
+        elif in_line and val < active_threshold:
+            in_line = False
+            if y - start_y >= min_line_height:
+                pad_y = max(0, start_y - min_gap)
+                pad_bot = min(cv_img.shape[0], y + min_gap)
+
+                line_slice = thresh[pad_y:pad_bot, :]
+                col_activity = np.count_nonzero(line_slice, axis=0)
+                nz = np.nonzero(col_activity)[0]
+                if len(nz) > 0:
+                    start_x = max(0, nz[0] - min_gap)
+                    end_x = min(cv_img.shape[1], nz[-1] + min_gap + 1)
+                    lines.append((int(start_x), int(pad_y), int(end_x), int(pad_bot)))
+                else:
+                    lines.append((0, int(pad_y), int(cv_img.shape[1]), int(pad_bot)))
+
+    if in_line and len(row_activity) - start_y >= min_line_height:
+        pad_y = max(0, start_y - min_gap)
+        line_slice = thresh[pad_y:, :]
+        col_activity = np.count_nonzero(line_slice, axis=0)
+        nz = np.nonzero(col_activity)[0]
+        if len(nz) > 0:
+            start_x = max(0, nz[0] - min_gap)
+            end_x = min(cv_img.shape[1], nz[-1] + min_gap + 1)
+            lines.append((int(start_x), int(pad_y), int(end_x), int(cv_img.shape[0])))
+        else:
+            lines.append((0, int(pad_y), int(cv_img.shape[1]), int(cv_img.shape[0])))
+
+    if not lines:
+        return [(0, 0, image.width, image.height)]
+
+    return lines
+
+
+def _pil_to_base64(img: Image.Image) -> str:
+    buffered = io.BytesIO()
+    img.save(buffered, format="JPEG", quality=85)
+    return base64.b64encode(buffered.getvalue()).decode("utf-8")
 
 
 def predict(
@@ -128,92 +198,131 @@ def predict(
     image_size: int = 384,
     threshold_method: str | None = None,
     debug: bool = False,
+    multiline: bool = False,
+    return_base64: bool = False,
 ) -> Dict:
     preprocess_info = {}
+    original_image = Image.open(image_path).convert("RGB")
 
     if preprocess:
         if debug:
-            image, preprocess_info = preprocess_image(
+            base_image, preprocess_info = preprocess_image(
                 image_path,
-                target_size=(image_size, image_size),
+                target_size=None,
                 threshold_method=threshold_method,
                 return_debug=True,
             )
         else:
-            image = preprocess_image(
+            base_image = preprocess_image(
                 image_path,
-                target_size=(image_size, image_size),
+                target_size=None,
                 threshold_method=threshold_method,
                 return_debug=False,
             )
-            preprocess_info = {"pipeline": "preprocess_image", "debug": False}
-    else:
-        image = Image.open(image_path).convert("RGB")
-        if debug:
-            image, pad_meta = letterbox_pil(
-                image, target_size=(image_size, image_size), return_meta=True
-            )
             preprocess_info = {
-                "pipeline": "letterbox_only",
-                "padding": pad_meta,
-                "debug": True,
+                "pipeline": "preprocess_image",
+                "debug": False,
+                "target_size": None,
             }
+    else:
+        base_image = original_image
+        preprocess_info = {"pipeline": "none", "debug": False}
+
+    if multiline:
+        line_boxes = _segment_lines(base_image)
+    else:
+        line_boxes = [(0, 0, base_image.width, base_image.height)]
+
+    all_line_results = []
+    full_text = []
+    token_trace_out = []
+    character_trace_out = []
+
+    for line_index, box in enumerate(line_boxes):
+        line_crop = base_image.crop(box)
+
+        if debug:
+            model_input_img, pad_meta = letterbox_pil(
+                line_crop, target_size=(image_size, image_size), return_meta=True
+            )
+            preprocess_info.setdefault("line_padding", []).append(
+                {"line_index": line_index, **pad_meta}
+            )
         else:
-            image = letterbox_pil(image, target_size=(image_size, image_size))
-            preprocess_info = {"pipeline": "letterbox_only", "debug": False}
+            model_input_img = letterbox_pil(line_crop, target_size=(image_size, image_size))
 
-    pixel_values = processor(image, return_tensors="pt").pixel_values.to(device)
+        pixel_values = processor(model_input_img, return_tensors="pt").pixel_values.to(device)
 
-    with torch.no_grad():
-        gen_out = model.generate(
-            pixel_values,
-            max_new_tokens=64,
-            num_beams=4,
-            early_stopping=True,
-            length_penalty=2.0,
-            no_repeat_ngram_size=3,
-            return_dict_in_generate=True,
-            output_scores=debug,
-        )
-
-    generated_ids = gen_out.sequences
-    predicted_text = processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
-
-    transition_scores = None
-    if debug and hasattr(gen_out, "scores") and gen_out.scores:
-        beam_indices = getattr(gen_out, "beam_indices", None)
-        try:
-            transition_scores = model.compute_transition_scores(
-                generated_ids,
-                gen_out.scores,
-                beam_indices=beam_indices,
-                normalize_logits=True,
+        with torch.no_grad():
+            gen_out = model.generate(
+                pixel_values,
+                max_new_tokens=64,
+                num_beams=4,
+                early_stopping=True,
+                length_penalty=2.0,
+                no_repeat_ngram_size=3,
+                return_dict_in_generate=True,
+                output_scores=debug,
             )
-        except TypeError:
-            # Compatibility fallback for older transformers versions.
-            transition_scores = model.compute_transition_scores(
-                generated_ids, gen_out.scores, beam_indices=beam_indices
-            )
+
+        generated_ids = gen_out.sequences
+        line_text = processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
+        full_text.append(line_text)
+
+        line_result = {
+            "line_index": line_index,
+            "bbox": {"x_min": box[0], "y_min": box[1], "x_max": box[2], "y_max": box[3]},
+            "text": line_text,
+            "text_breakdown": _text_breakdown(line_text),
+        }
+
+        if debug:
+            transition_scores = None
+            if hasattr(gen_out, "scores") and gen_out.scores:
+                beam_indices = getattr(gen_out, "beam_indices", None)
+                try:
+                    transition_scores = model.compute_transition_scores(
+                        generated_ids,
+                        gen_out.scores,
+                        beam_indices=beam_indices,
+                        normalize_logits=True,
+                    )
+                except TypeError:
+                    transition_scores = model.compute_transition_scores(
+                        generated_ids, gen_out.scores, beam_indices=beam_indices
+                    )
+
+            tokenizer = processor.tokenizer
+            line_token_trace = _token_trace(generated_ids, transition_scores, tokenizer)
+            line_character_trace = _character_trace(line_text)
+            line_result["token_trace"] = line_token_trace
+            line_result["character_trace"] = line_character_trace
+
+            if len(line_boxes) == 1:
+                token_trace_out = line_token_trace
+                character_trace_out = line_character_trace
+            else:
+                token_trace_out.append({"line_index": line_index, "tokens": line_token_trace})
+                character_trace_out.append({"line_index": line_index, "characters": line_character_trace})
+
+        all_line_results.append(line_result)
+
+    final_predicted_text = "\n".join(full_text) if multiline and len(full_text) > 1 else (full_text[0] if full_text else "")
 
     result = {
         "image_path": image_path,
-        "predicted_text": predicted_text,
+        "predicted_text": final_predicted_text,
         "preprocess": preprocess_info,
-        "text_breakdown": _text_breakdown(predicted_text),
+        "text_breakdown": _text_breakdown(final_predicted_text),
+        "lines": all_line_results,
     }
 
     if debug:
-        tokenizer = processor.tokenizer
-        result["token_trace"] = _token_trace(generated_ids, transition_scores, tokenizer)
-        result["character_trace"] = _character_trace(predicted_text)
-        result["generation"] = {
-            "sequence_length": int(generated_ids.shape[1]),
-            "decoder_start_token_id": int(model.generation_config.decoder_start_token_id),
-            "eos_token_id": int(model.generation_config.eos_token_id),
-            "pad_token_id": int(model.generation_config.pad_token_id),
-            "eos_emitted": int(model.generation_config.eos_token_id)
-            in [int(x) for x in generated_ids[0].tolist()],
-        }
+        result["token_trace"] = token_trace_out
+        result["character_trace"] = character_trace_out
+
+    if return_base64 and base_image is not None:
+        result["base64_image"] = f"data:image/jpeg;base64,{_pil_to_base64(base_image)}"
 
     return result
 
@@ -244,6 +353,16 @@ def main():
         help="Include token/character/preprocess trace for backend/UI",
     )
     parser.add_argument(
+        "--multiline",
+        action="store_true",
+        help="Attempt to segment the image into multiple lines before inference",
+    )
+    parser.add_argument(
+        "--base64",
+        action="store_true",
+        help="Embed the base64 preprocessed image directly in the output JSON",
+    )
+    parser.add_argument(
         "--json_out",
         type=str,
         default="",
@@ -264,6 +383,8 @@ def main():
         image_size=args.image_size,
         threshold_method=args.threshold_method,
         debug=args.debug,
+        multiline=args.multiline,
+        return_base64=args.base64,
     )
 
     print("\n==================================================")
