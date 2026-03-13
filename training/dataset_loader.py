@@ -4,16 +4,7 @@ training/dataset_loader.py
 
 Dataset utilities for Brahmi OCR training using `dataset/map.json` as the
 single source of truth for labels and folder structure.
-
-Supported map entry modes:
-1) Fixed label folder:
-   {"char": "𑀓", "folder": "2Consonants/1_Ka_group/ka/1_base"}
-   -> every image under that folder gets label "𑀓"
-
-2) Mixed text folder:
-   {"char": "MIXED", "folder": "5Words_Phrases"}
-   -> reads labels from a manifest file inside that folder
-      (`labels.txt`, `labels.tsv`, `labels.csv`, or `annotations.*`)
+Adds runtime class bounding and a weighted sampler for length-balanced batches.
 """
 
 from __future__ import annotations
@@ -23,10 +14,10 @@ import json
 import os
 import random
 from dataclasses import dataclass
-from typing import Dict, Iterable, List, Sequence, Tuple
+from typing import Dict, Iterable, List, Sequence, Tuple, Optional
 
 from PIL import Image
-from torch.utils.data import ConcatDataset, Dataset
+from torch.utils.data import ConcatDataset, Dataset, WeightedRandomSampler
 
 from utils.preprocess import letterbox_pil
 
@@ -51,6 +42,7 @@ class SampleRecord:
     label_text: str
     source_folder: str
     source_type: str  # fixed_class | mixed_text
+    sequence_type: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -103,24 +95,24 @@ def load_map_entries(map_path: str) -> List[MapEntry]:
     return _flatten_map_entries(map_data)
 
 
-def _read_label_lines(label_file_path: str) -> Iterable[Tuple[str, str]]:
+def _read_label_lines_enriched(label_file_path: str) -> Iterable[Tuple[str, str, Optional[str]]]:
     ext = os.path.splitext(label_file_path)[1].lower()
     
     if ext == ".json":
         with open(label_file_path, "r", encoding="utf-8") as f:
             data = json.load(f)
-        # Support schemas using 'entries' or 'items' array
         items = data.get("entries", data.get("items", []))
         for item in items:
             image_ref = item.get("file", "").strip()
             text = item.get("text_brahmi", "").strip()
+            seq_type = item.get("sequence_type", "").strip() or None
             if image_ref and text:
-                yield image_ref, text
+                yield image_ref, text, seq_type
         return
 
     delimiter = ","
     if ext in {".txt", ".tsv"}:
-        delimiter = "\t"
+        delimiter = "\\t"
 
     with open(label_file_path, "r", encoding="utf-8") as f:
         if delimiter == ",":
@@ -131,23 +123,21 @@ def _read_label_lines(label_file_path: str) -> Iterable[Tuple[str, str]]:
                 image_rel = row[0].strip()
                 text = ",".join(row[1:]).strip()
                 if image_rel and text:
-                    yield image_rel, text
+                    yield image_rel, text, None
             return
 
         for raw in f:
             line = raw.strip()
             if not line:
                 continue
-            if "\t" in line:
-                image_rel, text = line.split("\t", maxsplit=1)
+            if "\\t" in line:
+                image_rel, text = line.split("\\t", maxsplit=1)
             elif "," in line:
                 image_rel, text = line.split(",", maxsplit=1)
             else:
                 continue
-            image_rel = image_rel.strip()
-            text = text.strip()
-            if image_rel and text:
-                yield image_rel, text
+            if image_rel.strip() and text.strip():
+                yield image_rel.strip(), text.strip(), None
 
 
 def _resolve_mixed_labels(folder_abs: str, folder_rel: str) -> List[SampleRecord]:
@@ -159,25 +149,17 @@ def _resolve_mixed_labels(folder_abs: str, folder_rel: str) -> List[SampleRecord
             break
 
     if label_file is None:
-        print(
-            f"  WARNING: MIXED folder has no labels file, skipping: {folder_rel} "
-            f"(expected one of {', '.join(MIXED_LABEL_FILES)})"
-        )
         return []
 
     samples: List[SampleRecord] = []
     seen = set()
-    for image_ref, text in _read_label_lines(label_file):
+    for image_ref, text, seq_type in _read_label_lines_enriched(label_file):
         image_path = image_ref
         if not os.path.isabs(image_path):
             image_path = os.path.join(folder_abs, image_ref.replace("/", os.sep))
         image_path = os.path.normpath(image_path)
 
-        if not os.path.isfile(image_path):
-            continue
-        if not _is_image_file(image_path):
-            continue
-        if image_path in seen:
+        if not os.path.isfile(image_path) or not _is_image_file(image_path) or image_path in seen:
             continue
         seen.add(image_path)
 
@@ -187,21 +169,38 @@ def _resolve_mixed_labels(folder_abs: str, folder_rel: str) -> List[SampleRecord
                 label_text=text,
                 source_folder=folder_rel,
                 source_type="mixed_text",
+                sequence_type=seq_type
             )
         )
-
     return samples
 
 
-def load_samples_from_map(data_dir: str, map_filename: str = "map.json") -> List[SampleRecord]:
+def load_capped_samples(
+    data_dir: str, 
+    map_filename: str = "map.json",
+    max_fixed_per_class: int = 100,
+    max_words: int = 10000,
+    max_phrases: int = 10000,
+    max_long_sentences: int = 8000,
+    seed: int = 42
+) -> List[SampleRecord]:
     map_path = os.path.join(data_dir, map_filename)
     if not os.path.isfile(map_path):
         raise FileNotFoundError(f"map file not found: {map_path}")
 
     entries = load_map_entries(map_path)
-    samples: List[SampleRecord] = []
+    
+    fixed_samples_by_folder = {}
+    mixed_samples_by_category = {
+        "words": [],
+        "phrases": [],
+        "long_sentences": []
+    }
+    
     seen_image_paths = set()
+    rng = random.Random(seed)
 
+    # Gather data into buckets
     for entry in entries:
         folder_rel = entry.folder.replace("/", os.sep)
         folder_abs = os.path.join(data_dir, folder_rel)
@@ -216,15 +215,22 @@ def load_samples_from_map(data_dir: str, map_filename: str = "map.json") -> List
                 if rec.image_path in seen_image_paths:
                     continue
                 seen_image_paths.add(rec.image_path)
-                samples.append(rec)
+                
+                cat = _classify_text_shape(rec)
+                if cat in mixed_samples_by_category:
+                    mixed_samples_by_category[cat].append(rec)
             continue
 
+        # Fixed category
+        if folder_rel not in fixed_samples_by_folder:
+            fixed_samples_by_folder[folder_rel] = []
+            
         for image_path in _iter_image_files(folder_abs):
             norm_path = os.path.normpath(image_path)
             if norm_path in seen_image_paths:
                 continue
             seen_image_paths.add(norm_path)
-            samples.append(
+            fixed_samples_by_folder[folder_rel].append(
                 SampleRecord(
                     image_path=norm_path,
                     label_text=label,
@@ -233,19 +239,28 @@ def load_samples_from_map(data_dir: str, map_filename: str = "map.json") -> List
                 )
             )
 
-    samples.sort(key=lambda s: s.image_path)
-    return samples
+    final_samples = []
+    
+    # Cap Fixed
+    for folder, smps in fixed_samples_by_folder.items():
+        rng.shuffle(smps)
+        final_samples.extend(smps[:max_fixed_per_class])
+        
+    # Cap Mixed
+    for cat, cap in zip(["words", "phrases", "long_sentences"], [max_words, max_phrases, max_long_sentences]):
+        smps = mixed_samples_by_category[cat]
+        rng.shuffle(smps)
+        final_samples.extend(smps[:cap])
+
+    final_samples.sort(key=lambda s: s.image_path)
+    return final_samples
 
 
 def _normalize_ratios(split_ratios: Sequence[float]) -> Tuple[float, float, float]:
     if len(split_ratios) != 3:
         raise ValueError("split_ratios must be 3 values: train, val, test")
     train_ratio, val_ratio, test_ratio = split_ratios
-    if train_ratio < 0 or val_ratio < 0 or test_ratio < 0:
-        raise ValueError("split ratios must be non-negative")
     total = train_ratio + val_ratio + test_ratio
-    if total <= 0:
-        raise ValueError("sum of split ratios must be > 0")
     return train_ratio / total, val_ratio / total, test_ratio / total
 
 
@@ -256,12 +271,9 @@ def split_samples(
     seed: int = 42,
 ) -> List[SampleRecord]:
     split = split.lower().strip()
-    if split == "all":
-        return list(samples)
-    if split not in {"train", "val", "test"}:
-        raise ValueError("split must be one of: train, val, test, all")
+    if split == "all": return list(samples)
 
-    train_ratio, val_ratio, test_ratio = _normalize_ratios(split_ratios)
+    train_ratio, val_ratio, _ = _normalize_ratios(split_ratios)
     rng = random.Random(seed)
     shuffled = list(samples)
     rng.shuffle(shuffled)
@@ -269,34 +281,27 @@ def split_samples(
     n = len(shuffled)
     n_train = int(n * train_ratio)
     n_val = int(n * val_ratio)
-    n_test = n - n_train - n_val
 
-    if n_test < 0:
-        n_test = 0
-    if n_train + n_val + n_test != n:
-        n_test = n - n_train - n_val
-
-    train_set = shuffled[:n_train]
-    val_set = shuffled[n_train : n_train + n_val]
-    test_set = shuffled[n_train + n_val :]
-
-    if split == "train":
-        return train_set
-    if split == "val":
-        return val_set
-    return test_set
+    if split == "train": return shuffled[:n_train]
+    if split == "val": return shuffled[n_train : n_train + n_val]
+    return shuffled[n_train + n_val :]
 
 
 def _classify_text_shape(record: SampleRecord) -> str:
     if record.source_type == "fixed_class":
         return "characters_ngrams"
 
+    if record.sequence_type:
+        val = record.sequence_type
+        if val in {"sentence", "multiline"}:
+            return "long_sentences"
+        if val in {"word", "phrase"}:
+            return val + "s"
+
     words = [w for w in record.label_text.split(" ") if w]
     word_count = len(words)
-    if word_count <= 1:
-        return "words"
-    if word_count <= 4:
-        return "phrases"
+    if word_count <= 1: return "words"
+    if word_count <= 4: return "phrases"
     return "long_sentences"
 
 
@@ -309,23 +314,20 @@ def summarize_samples(samples: Sequence[SampleRecord]) -> Dict:
     }
     char_length_hist: Dict[int, int] = {}
     word_count_hist: Dict[int, int] = {}
-    unique_labels = set()
 
     for record in samples:
         category = _classify_text_shape(record)
         category_counts[category] = category_counts.get(category, 0) + 1
 
         text = record.label_text
-        unique_labels.add(text)
-        char_len = len(text.replace(" ", ""))
-        word_len = len([w for w in text.split(" ") if w])
+        char_len = len(text.replace(" ", "").replace("\\n", ""))
+        word_len = len([w for w in text.split() if w])
 
         char_length_hist[char_len] = char_length_hist.get(char_len, 0) + 1
         word_count_hist[word_len] = word_count_hist.get(word_len, 0) + 1
 
     return {
         "total_samples": len(samples),
-        "unique_labels": len(unique_labels),
         "category_counts": category_counts,
         "char_length_histogram": dict(sorted(char_length_hist.items())),
         "word_count_histogram": dict(sorted(word_count_hist.items())),
@@ -336,16 +338,11 @@ def build_character_set(samples: Sequence[SampleRecord]) -> List[str]:
     chars = set()
     for record in samples:
         for ch in record.label_text:
-            if ch:
-                chars.add(ch)
+            if ch: chars.add(ch)
     return sorted(chars)
 
 
 class BrahmiDataset(Dataset):
-    """
-    PyTorch Dataset that reads labels from map.json-defined folders.
-    """
-
     def __init__(
         self,
         data_dir: str,
@@ -356,6 +353,10 @@ class BrahmiDataset(Dataset):
         split_ratios: Sequence[float] = (0.8, 0.1, 0.1),
         seed: int = 42,
         image_size: int = 384,
+        max_fixed_per_class: int = 100,
+        max_words: int = 10000,
+        max_phrases: int = 10000,
+        max_long_sentences: int = 8000,
     ):
         super().__init__()
         self.data_dir = data_dir
@@ -364,38 +365,36 @@ class BrahmiDataset(Dataset):
         self.image_size = image_size
         self.split = split
 
-        all_samples = load_samples_from_map(data_dir, map_filename=map_filename)
+        all_samples = load_capped_samples(
+            data_dir, 
+            map_filename=map_filename,
+            max_fixed_per_class=max_fixed_per_class,
+            max_words=max_words,
+            max_phrases=max_phrases,
+            max_long_sentences=max_long_sentences,
+            seed=seed
+        )
         if not all_samples:
-            raise ValueError(
-                f"No image samples found from map.json under: {data_dir}"
-            )
+            raise ValueError(f"No image samples found from map.json under: {data_dir}")
 
         self.all_samples = all_samples
-        self.samples = split_samples(
-            all_samples, split=split, split_ratios=split_ratios, seed=seed
-        )
+        self.samples = split_samples(all_samples, split=split, split_ratios=split_ratios, seed=seed)
         self.summary = summarize_samples(self.samples)
-        self.full_summary = summarize_samples(all_samples)
         self.character_set = build_character_set(all_samples)
 
     def __len__(self) -> int:
         return len(self.samples)
 
     def __getitem__(self, idx: int) -> dict:
-        if self.processor is None:
-            raise ValueError("processor is required to fetch dataset samples")
-
         sample = self.samples[idx]
         try:
             image = Image.open(sample.image_path).convert("RGB")
-        except Exception as exc:
-            print(f"  WARNING: Failed to load {sample.image_path}: {exc}")
+        except Exception:
             image = Image.new("RGB", (self.image_size, self.image_size), (255, 255, 255))
 
-        # Aspect-ratio safe square padding before feeding TrOCR.
         image = letterbox_pil(image, target_size=(self.image_size, self.image_size))
-
         pixel_values = self.processor(image, return_tensors="pt").pixel_values.squeeze(0)
+        
         labels = self.processor.tokenizer(
             sample.label_text,
             padding="max_length",
@@ -404,51 +403,48 @@ class BrahmiDataset(Dataset):
             return_tensors="pt",
         ).input_ids.squeeze(0)
         labels[labels == self.processor.tokenizer.pad_token_id] = -100
-        return {"pixel_values": pixel_values, "labels": labels}
+        
+        category_id = ["characters_ngrams", "words", "phrases", "long_sentences"].index(
+            _classify_text_shape(sample)
+        )
+        
+        return {
+            "pixel_values": pixel_values, 
+            "labels": labels,
+            "category_id": category_id,
+        }
 
     @staticmethod
     def collate_fn(batch: list) -> dict:
         import torch
-
         pixel_values = torch.stack([item["pixel_values"] for item in batch])
         labels = torch.stack([item["labels"] for item in batch])
-        return {"pixel_values": pixel_values, "labels": labels}
+        # Include category id for evaluation metrics logging
+        category_ids = torch.tensor([item["category_id"] for item in batch])
+        return {"pixel_values": pixel_values, "labels": labels, "category_ids": category_ids}
 
 
-def build_combined_dataset(
-    data_dir: str,
-    extra_dirs: Sequence[str],
-    processor,
-    split: str = "train",
-    max_label_length: int = 64,
-    split_ratios: Sequence[float] = (0.8, 0.1, 0.1),
-    seed: int = 42,
-    image_size: int = 384,
-) -> Dataset:
-    """
-    Backward-compatible helper: combine multiple map-driven datasets.
-    """
-    roots = [data_dir] + list(extra_dirs or [])
-    datasets = []
-    for root in roots:
-        if not os.path.isdir(root):
-            print(f"  WARNING: dataset root not found, skipping: {root}")
-            continue
-        ds = BrahmiDataset(
-            root,
-            split=split,
-            processor=processor,
-            max_label_length=max_label_length,
-            split_ratios=split_ratios,
-            seed=seed,
-            image_size=image_size,
-        )
-        if len(ds) > 0:
-            datasets.append(ds)
-            print(f"  {os.path.basename(root)} ({split}): {len(ds)}")
+def create_weighted_sampler(dataset: BrahmiDataset) -> WeightedRandomSampler:
+    """Builds a WeightedRandomSampler that balances categories perfectly."""
+    counts = dataset.summary["category_counts"]
+    total = sum(counts.values())
+    
+    # Weight is inversely proportional to class size, normalized
+    cat_weights = {}
+    for cat, count in counts.items():
+        if count > 0:
+            cat_weights[cat] = total / count
+        else:
+            cat_weights[cat] = 0.0
 
-    if not datasets:
-        raise ValueError("No datasets found for build_combined_dataset")
-    if len(datasets) == 1:
-        return datasets[0]
-    return ConcatDataset(datasets)
+    sample_weights = []
+    for sample in dataset.samples:
+        cat = _classify_text_shape(sample)
+        sample_weights.append(cat_weights[cat])
+
+    import torch
+    return WeightedRandomSampler(
+        weights=torch.DoubleTensor(sample_weights),
+        num_samples=len(sample_weights), 
+        replacement=True
+    )

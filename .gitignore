@@ -49,3 +49,6 @@ dataset/*
 !dataset/validate_dataset.py
 !dataset/map.json
 model/
+
+
+dataset.zip

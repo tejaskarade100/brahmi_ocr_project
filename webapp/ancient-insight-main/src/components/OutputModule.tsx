@@ -12,13 +12,10 @@ interface EtymologyEntry {
 interface OutputModuleProps {
   isProcessing: boolean;
   isComplete: boolean;
+  ocrResult?: any;
 }
 
-const TRANSLATED_TEXT = `The king Ashoka, beloved of the gods, proclaims thus unto his people:
 
-"Let all beings find peace in this realm. No creature shall be harmed for sacrifice. Let dharma guide the hearts of rulers and the ruled alike."
-
-This edict was carved in the twenty-seventh year of his reign, upon the stone pillars that mark the boundaries of compassion.`;
 
 const ETYMOLOGY_DATA: EtymologyEntry[] = [
   { symbol: "𑀅", modern: "A", meaning: "Derived from the Semitic 'aleph' — the head of an ox, symbolizing primordial creation" },
@@ -29,24 +26,25 @@ const ETYMOLOGY_DATA: EtymologyEntry[] = [
   { symbol: "𑀫", modern: "Ma", meaning: "Universal mother syllable; found across all Indic scripts as creation's sound" },
 ];
 
-const OutputModule = ({ isProcessing, isComplete }: OutputModuleProps) => {
+const OutputModule = ({ isProcessing, isComplete, ocrResult }: OutputModuleProps) => {
   const [displayedText, setDisplayedText] = useState("");
   const [typingDone, setTypingDone] = useState(false);
   const [showEtymology, setShowEtymology] = useState(false);
 
   useEffect(() => {
-    if (!isComplete) {
+    if (!isComplete || !ocrResult) {
       setDisplayedText("");
       setTypingDone(false);
       setShowEtymology(false);
       return;
     }
 
+    const targetText = ocrResult.english_translation || "";
     let i = 0;
     setDisplayedText("");
     const interval = setInterval(() => {
-      if (i < TRANSLATED_TEXT.length) {
-        setDisplayedText(TRANSLATED_TEXT.slice(0, i + 1));
+      if (i < targetText.length) {
+        setDisplayedText(targetText.slice(0, i + 1));
         i++;
       } else {
         clearInterval(interval);
@@ -56,7 +54,7 @@ const OutputModule = ({ isProcessing, isComplete }: OutputModuleProps) => {
     }, 18);
 
     return () => clearInterval(interval);
-  }, [isComplete]);
+  }, [isComplete, ocrResult]);
 
   return (
     <div className="flex flex-col h-full p-8 lg:p-12">
@@ -68,8 +66,8 @@ const OutputModule = ({ isProcessing, isComplete }: OutputModuleProps) => {
           {isProcessing
             ? "Deciphering glyphs…"
             : isComplete
-            ? "Brahmi → English"
-            : "Awaiting source material"}
+              ? "Brahmi → English"
+              : "Awaiting source material"}
         </p>
       </div>
 
@@ -118,7 +116,8 @@ const OutputModule = ({ isProcessing, isComplete }: OutputModuleProps) => {
                 animate={{ opacity: 1 }}
               >
                 {/* Translated text with typewriter */}
-                <div className="font-display text-lg leading-relaxed text-foreground/75 whitespace-pre-line">
+                <div className="font-display text-lg leading-relaxed text-foreground/75 whitespace-pre-line mb-4">
+                  <span className="text-xs tracking-widest uppercase text-muted-foreground mr-2">English:</span>
                   {displayedText}
                   {!typingDone && (
                     <motion.span
@@ -128,6 +127,28 @@ const OutputModule = ({ isProcessing, isComplete }: OutputModuleProps) => {
                     />
                   )}
                 </div>
+
+                {typingDone && ocrResult && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.5 }}
+                    className="space-y-4 mb-6"
+                  >
+                    <div className="font-display text-md leading-relaxed text-foreground/70 whitespace-pre-line">
+                      <span className="text-xs tracking-widest uppercase text-muted-foreground mr-2">Hindi:</span>
+                      {ocrResult.hindi_translation}
+                    </div>
+                    <div className="font-display text-md leading-relaxed text-foreground/70 whitespace-pre-line">
+                      <span className="text-xs tracking-widest uppercase text-muted-foreground mr-2">Devanagari:</span>
+                      {ocrResult.devanagari_text}
+                    </div>
+                    <div className="font-display text-md leading-relaxed text-foreground/70 whitespace-pre-line">
+                      <span className="text-xs tracking-widest uppercase text-muted-foreground mr-2">Brahmi text:</span>
+                      <span className="font-mono text-lg">{ocrResult.brahmi_text}</span>
+                    </div>
+                  </motion.div>
+                )}
 
                 {/* Etymology section */}
                 <AnimatePresence>

@@ -7,15 +7,35 @@ const FAKE_PROCESSING_DELAY = 3500;
 const Index = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
+  const [ocrResult, setOcrResult] = useState<any>(null);
 
-  const handleImageUploaded = useCallback((_file: File, _url: string) => {
+  const handleImageUploaded = useCallback(async (file: File, _url: string) => {
     setIsProcessing(true);
     setIsComplete(false);
+    setOcrResult(null);
 
-    setTimeout(() => {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("API request failed");
+      }
+
+      const data = await response.json();
+      setOcrResult(data);
+    } catch (error) {
+      console.error("Error during OCR:", error);
+      // Optional: Add a toast notification for error
+    } finally {
       setIsProcessing(false);
       setIsComplete(true);
-    }, FAKE_PROCESSING_DELAY);
+    }
   }, []);
 
   return (
@@ -30,7 +50,11 @@ const Index = () => {
 
       {/* Right: Output */}
       <div className="relative">
-        <OutputModule isProcessing={isProcessing} isComplete={isComplete} />
+        <OutputModule
+          isProcessing={isProcessing}
+          isComplete={isComplete}
+          ocrResult={ocrResult}
+        />
       </div>
 
       {/* Top bar */}

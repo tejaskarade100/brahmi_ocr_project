@@ -4,7 +4,8 @@ dataset/generate_synthetic.py
 
 Mass-generates synthetic Brahmi training images from a deterministic manifest.
 Applies modular style pipelines: Clean, Manuscript, and Stone Inscription.
-Automatically handles single-character generation and MIXED phrase generation.
+Automatically handles single-character generation and explicit modes 
+for words, phrases, sentences, and multiline text.
 
 Usage:
   python dataset/generate_synthetic.py --dry_run
@@ -72,7 +73,7 @@ def build_mixed_token_pools(rows: List[Dict[str, str]]) -> Tuple[List[str], List
 
     for row in rows:
         token = row["label_text"].strip()
-        folder = row["folder"].replace("\\", "/")
+        folder = row["folder"].replace("\\\\", "/")
         if not _is_valid_mixed_token(token):
             continue
         if folder.startswith("2Consonants/"):
@@ -119,6 +120,22 @@ class _HarfBuzzRenderer:
         return buf.glyph_infos, buf.glyph_positions
 
     def render(self, text: str, padding: int) -> Image.Image:
+        # Multiline support
+        if "\\n" in text:
+            lines = text.split("\\n")
+            line_images = [self.render(line, padding) for line in lines if line.strip()]
+            if not line_images:
+                return Image.new("RGB", (64, 64), color="white")
+            max_w = max(img.width for img in line_images)
+            total_h = sum(img.height for img in line_images) + padding * (len(line_images) - 1)
+            
+            canvas = Image.new("RGB", (max_w, total_h), color="white")
+            y_offset = 0
+            for img in line_images:
+                canvas.paste(img, (padding, y_offset))
+                y_offset += img.height + padding
+            return canvas
+
         infos, positions = self._shape(text)
         if not infos:
             return Image.new("RGB", (64, 64), color="white")
@@ -195,8 +212,6 @@ def _get_hb_renderer(font_path: str, font_size: int) -> Optional[_HarfBuzzRender
 
 
 class StyleEngine:
-    """Applies perceptual variations to base rendered text."""
-    
     @staticmethod
     def _elastic_distortion(image: np.ndarray, alpha: float, sigma: float, rng: random.Random) -> np.ndarray:
         if 'map_coordinates' not in globals():
@@ -222,24 +237,18 @@ class StyleEngine:
 
     @classmethod
     def apply_clean(cls, img: Image.Image, rng: random.Random) -> Image.Image:
-        # 40%: Small rotation, mild shear, clean background
         angle = rng.uniform(-3, 3)
         img = img.rotate(angle, resample=Image.BICUBIC, expand=True, fillcolor=(255, 255, 255))
         return img
 
     @classmethod
     def apply_manuscript(cls, img: Image.Image, rng: random.Random) -> Image.Image:
-        # 35%: Moderate rotation, blur, ink bleed
         angle = rng.uniform(-8, 8)
-        img = img.rotate(angle, resample=Image.BICUBIC, expand=True, fillcolor=(240, 240, 230)) # Slight off-white paper
-        
+        img = img.rotate(angle, resample=Image.BICUBIC, expand=True, fillcolor=(240, 240, 230))
         np_img = np.array(img.convert('L'))
-        
-        # simulated ink bleed (erosion makes black text thicker)
         kernel = np.ones((2, 2), np.uint8)
         if rng.random() > 0.5:
             np_img = cv2.erode(np_img, kernel, iterations=1)
-        
         np_img = cls._add_noise(np_img, 0.1, rng)
         img = Image.fromarray(np_img).convert('RGB')
         img = img.filter(ImageFilter.GaussianBlur(rng.uniform(0.5, 1.2)))
@@ -247,30 +256,21 @@ class StyleEngine:
 
     @classmethod
     def apply_stone(cls, img: Image.Image, rng: random.Random) -> Image.Image:
-        # 25%: Strong erosion, uneven lighting, rough texture
         angle = rng.uniform(-15, 15)
-        bg_color = (rng.randint(150, 200), rng.randint(150, 200), rng.randint(150, 200)) # Stone greyish
+        bg_color = (rng.randint(150, 200), rng.randint(150, 200), rng.randint(150, 200))
         img = img.rotate(angle, resample=Image.BICUBIC, expand=True, fillcolor=bg_color)
-        
         np_img = np.array(img.convert('L'))
-        
-        # Heavy distortion/erosion
         if 'map_coordinates' in globals():
             np_img = cls._elastic_distortion(np_img, alpha=rng.uniform(15, 30), sigma=rng.uniform(3, 5), rng=rng)
-            
         kernel = np.ones((3, 3), np.uint8)
         if rng.random() > 0.5:
-            np_img = cv2.dilate(np_img, kernel, iterations=1) # Faded/chipped text
+            np_img = cv2.dilate(np_img, kernel, iterations=1)
         else:
-            np_img = cv2.erode(np_img, kernel, iterations=1)  # Deep carved text
-
+            np_img = cv2.erode(np_img, kernel, iterations=1)
         np_img = cls._add_noise(np_img, 0.3, rng)
-        
-        # Uneven lighting (gradient)
         h, w = np_img.shape
         gradient = np.tile(np.linspace(1.0, rng.uniform(0.4, 0.8), w), (h, 1))
         np_img = np.clip(np_img * gradient, 0, 255).astype(np.uint8)
-
         img = Image.fromarray(np_img).convert('RGB')
         img = img.filter(ImageFilter.GaussianBlur(rng.uniform(1.0, 2.0)))
         return img
@@ -278,7 +278,6 @@ class StyleEngine:
 
 def render_base_text(text: str, font_path: str, font_size: int = 120, padding: int = 20) -> Image.Image:
     global _WARNED_BASIC_LAYOUT
-
     hb_renderer = _get_hb_renderer(font_path, font_size)
     if hb_renderer is not None:
         return hb_renderer.render(text, padding)
@@ -291,37 +290,44 @@ def render_base_text(text: str, font_path: str, font_size: int = 120, padding: i
         raise RuntimeError(f"Failed to initialize font renderer for {font_path}: {exc}") from exc
 
     if not _WARNED_BASIC_LAYOUT and any(ch in BRAHMI_DEPENDENT_SIGNS for ch in text):
-        print(
-            "WARNING: HarfBuzz shaping unavailable (install uharfbuzz + freetype-py). "
-            "Dependent vowel signs may render detached."
-        )
+        print("WARNING: HarfBuzz shaping unavailable. Dependent signs may render detached.")
         _WARNED_BASIC_LAYOUT = True
 
     dummy_img = Image.new('RGB', (10, 10))
     draw = ImageDraw.Draw(dummy_img)
     bbox = draw.textbbox((0, 0), text, font=font)
-    
-    width = bbox[2] - bbox[0] + padding * 2
-    height = bbox[3] - bbox[1] + padding * 2
-    
-    # Needs to be at least some realistic size
-    width = max(width, 64)
-    height = max(height, 64)
-    
+    width = max(bbox[2] - bbox[0] + padding * 2, 64)
+    height = max(bbox[3] - bbox[1] + padding * 2, 64)
     img = Image.new('RGB', (int(width), int(height)), color="white")
     draw = ImageDraw.Draw(img)
-    
     draw.text((padding - bbox[0], padding - bbox[1]), text, font=font, fill="black")
     return img
 
 
-def generate_mixed_phrase(
+def generate_mixed_sequence(
     consonant_pool: List[str],
     vowel_pool: List[str],
+    sequence_type: str,
     rng: random.Random,
-) -> str:
-    """Generates 2-5 words from valid Brahmi syllable units."""
-    num_words = rng.randint(2, 5)
+) -> Tuple[str, int, int]:
+    """Generates synthetic Brahmi sequences explicitly by mode."""
+    
+    if sequence_type == "word":
+        num_words = 1
+        num_lines = 1
+    elif sequence_type == "phrase":
+        num_words = rng.randint(2, 4)
+        num_lines = 1
+    elif sequence_type == "sentence":
+        num_words = rng.randint(5, 10)
+        num_lines = 1
+    elif sequence_type == "multiline":
+        num_words = rng.randint(6, 15)
+        num_lines = rng.randint(2, 4)
+    else:
+        num_words = 1
+        num_lines = 1
+
     words = []
     for _ in range(num_words):
         word_len = rng.randint(2, 4)
@@ -336,7 +342,21 @@ def generate_mixed_phrase(
             else:
                 syllables.append("𑀓")
         words.append("".join(syllables))
-    return " ".join(words)
+    
+    if num_lines > 1:
+        # Distribute words across lines
+        words_per_line = max(1, num_words // num_lines)
+        lines = []
+        current_idx = 0
+        for i in range(num_lines):
+            end_idx = current_idx + words_per_line if i < num_lines - 1 else len(words)
+            lines.append(" ".join(words[current_idx:end_idx]))
+            current_idx = end_idx
+        text = "\\n".join(lines)
+    else:
+        text = " ".join(words)
+        
+    return text, num_words, num_lines
 
 
 def process_manifest(manifest_path: str, data_dir: str, dry_run: bool = False, batch_limit: int = 100):
@@ -349,49 +369,47 @@ def process_manifest(manifest_path: str, data_dir: str, dry_run: bool = False, b
         rows = list(reader)
 
     consonant_pool, vowel_pool = build_mixed_token_pools(rows)
-    print(
-        f"MIXED token pools -> consonant_syllables={len(consonant_pool)}, "
-        f"independent_vowels={len(vowel_pool)}"
-    )
+    print(f"MIXED token pools -> consonant_syllables={len(consonant_pool)}, independent_vowels={len(vowel_pool)}")
 
     total_generated = 0
+    # Group rows by folder for writing labels.json properly
+    folder_entries_map = {}
 
     for row in rows:
         folder_rel = row["folder"]
-        label_text = row["label_text"]
-        need_generate = int(row["need_generate"])
+        label_text = row.get("label_text", "")
+        seq_type = row.get("sequence_type", "characters_ngrams")
+        need_generate = int(row.get("need_generate", 0))
         
         if dry_run:
             need_generate = min(batch_limit, need_generate)
             
         if need_generate <= 0:
             if not dry_run:
-                print(f"Skipping {folder_rel} (Quota met)")
+                print(f"Skipping {folder_rel} [seq={seq_type}] (Quota met)")
             continue
 
         counts = {
-            "clean": int(row["style_clean"]),
-            "manuscript": int(row["style_manuscript"]),
-            "stone": int(row["style_stone"])
+            "clean": int(row.get("style_clean", 0)),
+            "manuscript": int(row.get("style_manuscript", 0)),
+            "stone": int(row.get("style_stone", 0))
         }
         
         if dry_run:
-            counts = {
-                "clean": math.ceil(counts["clean"] / int(row["need_generate"]) * need_generate) if need_generate else 0,
-                "manuscript": math.ceil(counts["manuscript"] / int(row["need_generate"]) * need_generate) if need_generate else 0,
-                "stone": math.ceil(counts["stone"] / int(row["need_generate"]) * need_generate) if need_generate else 0,
-            }
+             total_orig = sum(counts.values()) or 1
+             counts = { k: math.ceil(v / total_orig * need_generate) for k, v in counts.items() }
 
         out_dir = os.path.join(data_dir, folder_rel)
         os.makedirs(out_dir, exist_ok=True)
         
-        folder_seed = DEFAULT_SEED + hash(folder_rel) % 1000000
+        folder_seed = DEFAULT_SEED + hash(folder_rel + seq_type) % 1000000
         rng = random.Random(folder_seed)
         
         is_mixed = (label_text == "MIXED")
-        json_entries = []
+        if folder_rel not in folder_entries_map:
+            folder_entries_map[folder_rel] = []
 
-        print(f"Generating {need_generate} for {folder_rel} (Mixed: {is_mixed})")
+        print(f"Generating {need_generate} for {folder_rel} [seq={seq_type}]")
 
         idx = 0
         for style, count in counts.items():
@@ -400,13 +418,21 @@ def process_manifest(manifest_path: str, data_dir: str, dry_run: bool = False, b
                     break
                     
                 target_text = label_text
+                num_words = 1
+                num_lines = 1
+                
                 if is_mixed:
-                    target_text = generate_mixed_phrase(consonant_pool, vowel_pool, rng)
+                    target_text, num_words, num_lines = generate_mixed_sequence(
+                        consonant_pool, vowel_pool, seq_type, rng
+                    )
                 
-                # Render Base Image
-                base_img = render_base_text(target_text, FONT_PATH, font_size=rng.randint(80, 140))
+                # Dynamic font size, scale down heavily for multiline
+                f_size = rng.randint(80, 140)
+                if seq_type == "multiline" or seq_type == "sentence":
+                    f_size = rng.randint(50, 80)
+                    
+                base_img = render_base_text(target_text, FONT_PATH, font_size=f_size)
                 
-                # Apply Styles
                 if style == "clean":
                     final_img = StyleEngine.apply_clean(base_img, rng)
                 elif style == "manuscript":
@@ -414,40 +440,43 @@ def process_manifest(manifest_path: str, data_dir: str, dry_run: bool = False, b
                 else:
                     final_img = StyleEngine.apply_stone(base_img, rng)
                 
-                # Save optimized
                 uid = uuid.UUID(int=rng.getrandbits(128)).hex[:8]
-                filename = f"gen_{style}_{uid}.webp"
+                filename = f"gen_{style}_{seq_type}_{uid}.webp"
                 save_path = os.path.join(out_dir, filename)
                 
                 final_img.save(save_path, "WEBP", quality=85)
                 total_generated += 1
                 
                 if is_mixed:
-                    json_entries.append({
+                    folder_entries_map[folder_rel].append({
                         "file": filename,
                         "text_brahmi": target_text,
-                        "source": "synthetic",
+                        "sequence_type": seq_type,
+                        "word_count": num_words,
+                        "line_count": num_lines,
                         "style": style,
                         "seed": folder_seed + idx
                     })
                 
                 idx += 1
-                
                 if dry_run and idx >= batch_limit:
                     break
 
-        if is_mixed and json_entries:
-            json_path = os.path.join(out_dir, "labels.json")
-            existing_data = {"version": "1.0", "entries": []}
-            if os.path.exists(json_path):
-                try:
-                    with open(json_path, 'r', encoding='utf-8') as jf:
-                        existing_data = json.load(jf)
-                except Exception:
-                    pass
-            existing_data["entries"].extend(json_entries)
-            with open(json_path, 'w', encoding='utf-8') as jf:
-                json.dump(existing_data, jf, indent=2, ensure_ascii=False)
+    # Write combined labels.json for mixed folders
+    for folder_rel, entries in folder_entries_map.items():
+        if not entries: continue
+        out_dir = os.path.join(data_dir, folder_rel)
+        json_path = os.path.join(out_dir, "labels.json")
+        existing_data = {"version": "1.0", "entries": []}
+        if os.path.exists(json_path):
+            try:
+                with open(json_path, 'r', encoding='utf-8') as jf:
+                    existing_data = json.load(jf)
+            except Exception:
+                pass
+        existing_data["entries"].extend(entries)
+        with open(json_path, 'w', encoding='utf-8') as jf:
+            json.dump(existing_data, jf, indent=2, ensure_ascii=False)
 
     print(f"\\nGeneration Complete. Generated {total_generated} images.")
 
