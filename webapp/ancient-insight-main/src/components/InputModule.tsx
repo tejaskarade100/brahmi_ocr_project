@@ -176,25 +176,26 @@ const InputModule = ({
     "unknown";
 
   return (
-    <div className="flex flex-col h-full p-8 lg:p-12">
+    <div className="flex flex-col flex-1 p-8 lg:p-12 pt-16">
       <div className="mb-6">
-        <h2 className="font-display text-2xl font-light tracking-wide text-foreground/80">
+        <h2 className="font-display text-2xl font-light tracking-wide text-foreground/95">
           Source Inspection
         </h2>
-        <p className="font-body text-xs tracking-widest uppercase text-muted-foreground mt-1">
+        <p className="font-body text-xs tracking-widest uppercase text-foreground/60 mt-1">
           Upload, inspect preprocessing, and verify detected line regions
         </p>
       </div>
 
       <div
         className={cn(
-          "relative flex-1 rounded-sm cursor-pointer transition-colors duration-300 overflow-hidden",
+          "relative flex-1 flex flex-col rounded-sm transition-colors duration-300",
           isDragging ? "bg-primary/5" : imageUrl ? "bg-transparent" : "bg-muted/30",
         )}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={() => setIsDragging(false)}
         onClick={handleClick}
+        style={{ cursor: imageUrl ? 'default' : 'pointer', minHeight: '400px' }}
       >
         <input
           ref={inputRef}
@@ -233,9 +234,10 @@ const InputModule = ({
               key="image"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="absolute inset-0"
+              className="flex flex-col h-full w-full"
             >
-              <div className="absolute inset-x-0 top-0 z-10 flex flex-wrap items-center justify-between gap-2 p-3">
+              {/* Top pill toolbar */}
+              <div className="flex flex-wrap items-center justify-between gap-2 p-3 flex-shrink-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="rounded-full border border-border/70 bg-background/75 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-foreground/70 backdrop-blur">
                     {detectedCategory}
@@ -298,13 +300,14 @@ const InputModule = ({
                 </div>
               </div>
 
-              <div ref={stageRef} className="relative h-full w-full overflow-hidden rounded-sm">
+              {/* Image stage — takes all remaining height */}
+              <div ref={stageRef} className="relative flex-1 overflow-hidden rounded-sm">
                 {displayImageUrl && (
                   <img
                     ref={imageRef}
                     src={displayImageUrl}
                     alt="Inscription under inspection"
-                    className="w-full h-full object-contain"
+                    className="absolute inset-0 w-full h-full object-contain"
                     onLoad={updateRenderFrame}
                   />
                 )}
@@ -379,6 +382,19 @@ const InputModule = ({
                     {errorMessage}
                   </div>
                 )}
+
+                {/* Re-upload button — bottom-left of image stage */}
+                <button
+                  type="button"
+                  className="absolute bottom-4 left-4 z-20 flex items-center gap-2 rounded-full border border-border/60 bg-background/80 px-3 py-1.5 text-[10px] uppercase tracking-[0.15em] text-foreground/70 backdrop-blur transition-colors hover:border-primary/50 hover:text-primary/80 hover:bg-background/90"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    inputRef.current?.click();
+                  }}
+                >
+                  <Upload className="w-3 h-3" strokeWidth={1.5} />
+                  Re-upload
+                </button>
               </div>
             </motion.div>
           )}
@@ -389,10 +405,10 @@ const InputModule = ({
         <div className="mt-4 flex items-center justify-between gap-4">
           <button
             type="button"
-            className="text-[10px] tracking-[0.15em] uppercase text-muted-foreground/50 hover:text-primary/60 transition-colors font-body"
+            className="text-[10px] tracking-[0.15em] uppercase text-muted-foreground/60 hover:text-primary/60 transition-colors font-body"
             onClick={handleClear}
           >
-            Clear & upload new
+            Clear &amp; upload new
           </button>
 
           {imageUrl && (

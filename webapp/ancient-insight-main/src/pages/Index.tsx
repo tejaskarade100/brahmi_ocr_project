@@ -57,9 +57,9 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="h-screen w-screen overflow-hidden grid grid-cols-1 md:grid-cols-2">
+    <div className="min-h-screen w-full grid grid-cols-1 md:grid-cols-2 overflow-x-hidden min-w-0">
       {/* Left: Input */}
-      <div className="relative border-r border-border/40">
+      <div className="relative border-r border-border/40 flex flex-col min-w-0" style={{ minHeight: '100vh' }}>
         <InputModule
           onImageUploaded={handleImageUploaded}
           isProcessing={isProcessing}
@@ -73,7 +73,7 @@ const Index = () => {
       </div>
 
       {/* Right: Output */}
-      <div className="relative">
+      <div className="relative flex flex-col min-w-0" style={{ minHeight: '100vh' }}>
         <OutputModule
           isProcessing={isProcessing}
           isComplete={isComplete}
@@ -86,10 +86,10 @@ const Index = () => {
 
       {/* Top bar */}
       <div className="fixed top-0 left-0 right-0 flex items-center justify-between px-8 lg:px-12 py-4 z-10 pointer-events-none">
-        <h1 className="font-display text-sm tracking-[0.3em] uppercase text-foreground/40 font-light">
-          Historica
+        <h1 className="font-display text-sm tracking-[0.3em] uppercase text-foreground/70 font-light">
+          Brahmi OCR
         </h1>
-        <span className="text-[9px] tracking-[0.2em] uppercase text-muted-foreground/40 font-body">
+        <span className="text-[9px] tracking-[0.2em] uppercase text-muted-foreground/70 font-body">
           AI Translation Engine
         </span>
       </div>

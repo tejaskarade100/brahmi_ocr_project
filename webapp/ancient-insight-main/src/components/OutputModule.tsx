@@ -229,12 +229,12 @@ const OutputModule = ({
   );
 
   return (
-    <div className="flex flex-col h-full p-8 lg:p-12">
+    <div className="flex flex-col flex-1 p-8 lg:p-12 pt-16 overflow-x-hidden min-w-0">
       <div className="mb-6">
-        <h2 className="font-display text-2xl font-light tracking-wide text-foreground/80">
+        <h2 className="font-display text-2xl font-light tracking-wide text-foreground/95">
           OCR Analysis
         </h2>
-        <p className="text-xs tracking-widest uppercase text-muted-foreground mt-1 font-body">
+        <p className="text-xs tracking-widest uppercase text-foreground/60 mt-1 font-body">
           {isProcessing
             ? "Deciphering glyphs..."
             : isComplete
@@ -243,8 +243,8 @@ const OutputModule = ({
         </p>
       </div>
 
-      <ScrollArea className="flex-1">
-        <div className="pr-4">
+      <ScrollArea className="flex-1 overflow-x-hidden min-w-0">
+        <div className="pr-4 min-w-0">
           <AnimatePresence>
             {!isComplete && !isProcessing && (
               <motion.div
@@ -266,7 +266,7 @@ const OutputModule = ({
                 exit={{ opacity: 0 }}
                 className="flex items-center gap-3 py-8"
               >
-                <div className="flex gap-1">
+                <div className="flex gap-1 min-w-0">
                   {[0, 1, 2].map((i) => (
                     <motion.div
                       key={i}
