@@ -82,6 +82,7 @@ export interface OCRDebugInfo {
 export interface OCRResponse {
   brahmi_text: string;
   devanagari_text: string;
+  latin_text: string;
   hindi_translation: string;
   english_translation: string;
   debug_info: OCRDebugInfo;

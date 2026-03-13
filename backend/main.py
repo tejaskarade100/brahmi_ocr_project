@@ -54,6 +54,7 @@ async def startup_event():
 class OCRResponse(BaseModel):
     brahmi_text: str
     devanagari_text: str
+    latin_text: str = ""
     hindi_translation: str
     english_translation: str
     debug_info: Dict[str, Any] = Field(default_factory=dict)
@@ -121,7 +122,9 @@ async def upload_image(file: UploadFile = File(...)):
         
         # Run transliteration and translation
         devanagari_text = transliterator_app.transliterate(brahmi_text)
+        latin_text = transliterator_app.transliterate_latin(brahmi_text)
         print(f"Transliterated: {devanagari_text}")
+        print(f"Latin: {latin_text}")
         
         translations = translator_app.translate(devanagari_text)
         print(f"Translations: {translations}")
@@ -129,6 +132,7 @@ async def upload_image(file: UploadFile = File(...)):
         return OCRResponse(
             brahmi_text=brahmi_text,
             devanagari_text=devanagari_text,
+            latin_text=latin_text,
             hindi_translation=translations.get("hindi", ""),
             english_translation=translations.get("english", ""),
             debug_info=debug_info,

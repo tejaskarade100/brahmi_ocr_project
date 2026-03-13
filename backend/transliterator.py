@@ -4,13 +4,14 @@ import re
 
 class Transliterator:
     def __init__(self, brahmi_json_path: str):
-        self.mapping = self._load_mapping(brahmi_json_path)
+        self.mapping, self.latin_mapping = self._load_mapping(brahmi_json_path)
 
     def _load_mapping(self, path: str) -> dict:
         mapping = {}
+        latin_mapping = {}
         if not os.path.exists(path):
             print(f"Warning: {path} not found. Transliteration will be empty.")
-            return mapping
+            return mapping, latin_mapping
             
         with open(path, 'r', encoding='utf-8') as f:
             content = f.read()
@@ -25,10 +26,12 @@ class Transliterator:
                 data = json.loads(match.group(2).replace('null', 'null')) 
                 if 'devanagari' in data and data['devanagari'] is not None:
                     mapping[char] = data['devanagari']
+                if 'latin' in data and data['latin'] is not None:
+                    latin_mapping[char] = data['latin']
             except json.JSONDecodeError:
                 pass
                 
-        return mapping
+        return mapping, latin_mapping
 
     def transliterate(self, brahmi_text: str) -> str:
         if not brahmi_text:
@@ -38,6 +41,19 @@ class Transliterator:
         for char in brahmi_text:
             if char in self.mapping:
                 result += self.mapping[char]
+            else:
+                result += char
+                
+        return result
+
+    def transliterate_latin(self, brahmi_text: str) -> str:
+        if not brahmi_text:
+            return ""
+            
+        result = ""
+        for char in brahmi_text:
+            if char in self.latin_mapping:
+                result += self.latin_mapping[char]
             else:
                 result += char
                 

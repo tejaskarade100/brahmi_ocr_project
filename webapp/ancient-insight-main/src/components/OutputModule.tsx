@@ -297,43 +297,61 @@ const OutputModule = ({
 
             {isComplete && !errorMessage && ocrResult && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-                <div className="space-y-4 rounded-sm border border-border/60 bg-muted/20 p-4">
-                  <div className="font-display text-lg leading-relaxed text-foreground/75 whitespace-pre-line">
-                    <span className="text-xs tracking-widest uppercase text-muted-foreground mr-2">
-                      English:
-                    </span>
-                    {displayedText}
-                    {!typingDone && (
-                      <motion.span
-                        className="inline-block w-[2px] h-5 bg-primary/50 ml-0.5 align-text-bottom"
-                        animate={{ opacity: [1, 0] }}
-                        transition={{ duration: 0.6, repeat: Infinity }}
-                      />
-                    )}
-                  </div>
-
-                  {renderBreakdownBadges(breakdown)}
-
-                  <div className="space-y-3">
-                    <div className="font-display text-md leading-relaxed text-foreground/70 whitespace-pre-line">
+                {/* ── Transliteration Section ── */}
+                <div className="space-y-3">
+                  <h3 className="text-xs tracking-[0.2em] uppercase text-foreground/55 font-body">
+                    Transliteration
+                  </h3>
+                  <div className="space-y-3 rounded-sm border border-border/60 bg-muted/20 p-4">
+                    <div className="font-display text-md leading-relaxed text-foreground/80 whitespace-pre-line">
                       <span className="text-xs tracking-widest uppercase text-muted-foreground mr-2">
-                        Hindi:
+                        Brahmi:
                       </span>
-                      {ocrResult.hindi_translation || "n/a"}
+                      <span className="font-mono text-lg">{ocrResult.brahmi_text || "n/a"}</span>
                     </div>
-                    <div className="font-display text-md leading-relaxed text-foreground/70 whitespace-pre-line">
+                    <div className="font-display text-md leading-relaxed text-foreground/80 whitespace-pre-line">
+                      <span className="text-xs tracking-widest uppercase text-muted-foreground mr-2">
+                        Latin:
+                      </span>
+                      {ocrResult.latin_text || "n/a"}
+                    </div>
+                    <div className="font-display text-md leading-relaxed text-foreground/80 whitespace-pre-line">
                       <span className="text-xs tracking-widest uppercase text-muted-foreground mr-2">
                         Devanagari:
                       </span>
                       {ocrResult.devanagari_text || "n/a"}
                     </div>
-                    <div className="font-display text-md leading-relaxed text-foreground/70 whitespace-pre-line">
+                  </div>
+                </div>
+
+                {/* ── Translation Section ── */}
+                <div className="space-y-3">
+                  <h3 className="text-xs tracking-[0.2em] uppercase text-foreground/55 font-body">
+                    Translation
+                  </h3>
+                  <div className="space-y-3 rounded-sm border border-border/60 bg-muted/20 p-4">
+                    <div className="font-display text-lg leading-relaxed text-foreground/80 whitespace-pre-line">
                       <span className="text-xs tracking-widest uppercase text-muted-foreground mr-2">
-                        Brahmi text:
+                        English:
                       </span>
-                      <span className="font-mono text-lg">{ocrResult.brahmi_text || "n/a"}</span>
+                      {displayedText}
+                      {!typingDone && (
+                        <motion.span
+                          className="inline-block w-[2px] h-5 bg-primary/50 ml-0.5 align-text-bottom"
+                          animate={{ opacity: [1, 0] }}
+                          transition={{ duration: 0.6, repeat: Infinity }}
+                        />
+                      )}
+                    </div>
+                    <div className="font-display text-md leading-relaxed text-foreground/80 whitespace-pre-line">
+                      <span className="text-xs tracking-widest uppercase text-muted-foreground mr-2">
+                        Hindi:
+                      </span>
+                      {ocrResult.hindi_translation || "n/a"}
                     </div>
                   </div>
+
+                  {renderBreakdownBadges(breakdown)}
                 </div>
 
                 <div className="space-y-3">
