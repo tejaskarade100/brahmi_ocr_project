@@ -352,6 +352,17 @@ def main():
             model.save_pretrained(args.output_dir)
             processor.save_pretrained(args.output_dir)
             print(f"  -> Best model saved to {args.output_dir}")
+            
+            if args.drive_save_path:
+                try:
+                    import shutil
+                    os.makedirs(os.path.dirname(args.drive_save_path), exist_ok=True)
+                    if os.path.exists(args.drive_save_path):
+                        shutil.rmtree(args.drive_save_path)
+                    shutil.copytree(args.output_dir, args.drive_save_path)
+                    print(f"  -> 💾 Auto-synced backup to Google Drive!")
+                except Exception as e:
+                    print(f"  -> ⚠️ Could not sync to Drive: {e}")
         else:
             patience_counter += 1
             if patience_counter >= args.patience:
