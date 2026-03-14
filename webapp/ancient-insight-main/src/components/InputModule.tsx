@@ -176,26 +176,30 @@ const InputModule = ({
     "unknown";
 
   return (
-    <div className="flex flex-col flex-1 p-8 lg:p-12 pt-16">
+    <div className="relative flex flex-col flex-1 p-8 lg:p-12 pt-16">
       <div className="mb-6">
         <h2 className="font-display text-2xl font-light tracking-wide text-foreground/95">
           Source Inspection
         </h2>
-        <p className="font-body text-xs tracking-widest uppercase text-foreground/60 mt-1">
+        <p className="font-body text-xs tracking-widest uppercase text-muted-foreground/90 mt-1">
           Upload, inspect preprocessing, and verify detected line regions
         </p>
       </div>
 
       <div
         className={cn(
-          "relative flex-1 flex flex-col rounded-sm transition-colors duration-300",
-          isDragging ? "bg-primary/5" : imageUrl ? "bg-transparent" : "bg-muted/30",
+          "relative flex-1 flex flex-col overflow-hidden rounded-[10px] border transition-all duration-300",
+          isDragging
+            ? "border-primary/45 bg-primary/10 shadow-[0_16px_32px_-26px_hsl(var(--primary)/0.65)]"
+            : imageUrl
+              ? "border-border/80 bg-card/65 shadow-[0_18px_34px_-30px_hsl(var(--primary)/0.5)]"
+              : "border-border/70 bg-gradient-to-br from-card to-background/75 shadow-[0_20px_36px_-34px_hsl(var(--primary)/0.45)]",
         )}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={() => setIsDragging(false)}
         onClick={handleClick}
-        style={{ cursor: imageUrl ? 'default' : 'pointer', minHeight: '400px' }}
+        style={{ cursor: imageUrl ? "default" : "pointer", minHeight: "400px" }}
       >
         <input
           ref={inputRef}
@@ -223,9 +227,9 @@ const InputModule = ({
                 animate={{ y: isDragging ? -4 : 0 }}
                 transition={{ type: "spring", stiffness: 300 }}
               >
-                <Upload className="w-6 h-6 text-muted-foreground/50" strokeWidth={1} />
+                <Upload className="w-6 h-6 text-muted-foreground/65" strokeWidth={1} />
               </motion.div>
-              <span className="text-xs tracking-widest uppercase text-muted-foreground/50 font-body">
+              <span className="text-xs tracking-widest uppercase text-muted-foreground/70 font-body">
                 {isDragging ? "Release to upload" : "Drop image here"}
               </span>
             </motion.div>
@@ -234,15 +238,15 @@ const InputModule = ({
               key="image"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="flex flex-col h-full w-full"
+              className="flex h-full w-full flex-col bg-background/20"
             >
               {/* Top pill toolbar */}
-              <div className="flex flex-wrap items-center justify-between gap-2 p-3 flex-shrink-0">
+              <div className="flex flex-shrink-0 flex-wrap items-center justify-between gap-2 border-b border-border/65 bg-background/65 px-4 py-3 backdrop-blur-[1px]">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded-full border border-border/70 bg-background/75 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-foreground/70 backdrop-blur">
+                  <span className="rounded-full border border-border/80 bg-card/85 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-foreground/75 shadow-sm">
                     {detectedCategory}
                   </span>
-                  <span className="rounded-full border border-border/70 bg-background/75 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-foreground/70 backdrop-blur">
+                  <span className="rounded-full border border-border/80 bg-card/85 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-foreground/75 shadow-sm">
                     {lineCount} {lineCount === 1 ? "line" : "lines"}
                   </span>
                 </div>
@@ -251,10 +255,10 @@ const InputModule = ({
                   <button
                     type="button"
                     className={cn(
-                      "rounded-full border px-3 py-1 text-[10px] uppercase tracking-[0.18em] backdrop-blur transition-colors",
+                      "rounded-full border px-3 py-1 text-[10px] uppercase tracking-[0.18em] backdrop-blur transition-colors duration-200",
                       viewMode === "original"
-                        ? "border-primary/50 bg-primary/10 text-primary"
-                        : "border-border/70 bg-background/75 text-foreground/65",
+                        ? "border-primary/55 bg-primary/15 text-primary shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.15)]"
+                        : "border-border/80 bg-card/80 text-foreground/70 hover:border-primary/35 hover:text-foreground/90",
                     )}
                     onClick={(e) => {
                       e.stopPropagation();
@@ -267,10 +271,10 @@ const InputModule = ({
                     type="button"
                     disabled={!processedImageUrl}
                     className={cn(
-                      "rounded-full border px-3 py-1 text-[10px] uppercase tracking-[0.18em] backdrop-blur transition-colors",
+                      "rounded-full border px-3 py-1 text-[10px] uppercase tracking-[0.18em] backdrop-blur transition-colors duration-200",
                       viewMode === "processed"
-                        ? "border-primary/50 bg-primary/10 text-primary"
-                        : "border-border/70 bg-background/75 text-foreground/65",
+                        ? "border-primary/55 bg-primary/15 text-primary shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.15)]"
+                        : "border-border/80 bg-card/80 text-foreground/70 hover:border-primary/35 hover:text-foreground/90",
                       !processedImageUrl && "cursor-not-allowed opacity-50",
                     )}
                     onClick={(e) => {
@@ -285,10 +289,10 @@ const InputModule = ({
                   <button
                     type="button"
                     className={cn(
-                      "rounded-full border px-3 py-1 text-[10px] uppercase tracking-[0.18em] backdrop-blur transition-colors",
+                      "rounded-full border px-3 py-1 text-[10px] uppercase tracking-[0.18em] backdrop-blur transition-colors duration-200",
                       showOverlays
-                        ? "border-primary/50 bg-primary/10 text-primary"
-                        : "border-border/70 bg-background/75 text-foreground/65",
+                        ? "border-primary/55 bg-primary/15 text-primary shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.15)]"
+                        : "border-border/80 bg-card/80 text-foreground/70 hover:border-primary/35 hover:text-foreground/90",
                     )}
                     onClick={(e) => {
                       e.stopPropagation();
@@ -301,13 +305,13 @@ const InputModule = ({
               </div>
 
               {/* Image stage — takes all remaining height */}
-              <div ref={stageRef} className="relative flex-1 overflow-hidden rounded-sm">
+              <div ref={stageRef} className="relative flex-1 overflow-hidden rounded-b-[10px] bg-background/65">
                 {displayImageUrl && (
                   <img
                     ref={imageRef}
                     src={displayImageUrl}
                     alt="Inscription under inspection"
-                    className="absolute inset-0 w-full h-full object-contain"
+                    className="absolute inset-0 h-full w-full object-contain"
                     onLoad={updateRenderFrame}
                   />
                 )}
@@ -325,8 +329,8 @@ const InputModule = ({
                         className={cn(
                           "absolute rounded-sm border-2 transition-all",
                           isActive
-                            ? "border-primary bg-primary/10 shadow-[0_0_0_1px_rgba(0,0,0,0.08)]"
-                            : "border-foreground/45 bg-background/5 hover:border-primary/70 hover:bg-primary/10",
+                            ? "border-primary bg-primary/15 shadow-[0_0_0_1px_hsl(var(--primary)/0.24),0_10px_24px_-20px_hsl(var(--primary)/0.9)]"
+                            : "border-foreground/40 bg-background/10 hover:border-primary/70 hover:bg-primary/15",
                         )}
                         style={style}
                         onClick={(e) => {
@@ -339,8 +343,8 @@ const InputModule = ({
                           className={cn(
                             "absolute -top-6 left-0 rounded-full px-2 py-0.5 text-[10px] uppercase tracking-[0.18em]",
                             isActive
-                              ? "bg-primary text-primary-foreground"
-                              : "bg-background/85 text-foreground/75",
+                              ? "bg-primary text-primary-foreground shadow-[0_6px_16px_-12px_hsl(var(--primary)/0.8)]"
+                              : "border border-border/75 bg-background/90 text-foreground/75",
                           )}
                         >
                           L{line.line_index + 1}
@@ -357,9 +361,9 @@ const InputModule = ({
                       exit={{ opacity: 0 }}
                       className="absolute inset-0"
                     >
-                      <div className="absolute left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-primary/40 to-transparent scan-line-animation" />
+                      <div className="absolute left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-primary/60 to-transparent scan-line-animation" />
                       <motion.div
-                        className="absolute inset-0 bg-primary/[0.03]"
+                        className="absolute inset-0 bg-gradient-to-b from-primary/[0.08] via-primary/[0.03] to-transparent"
                         animate={{ opacity: [0.03, 0.08, 0.03] }}
                         transition={{ duration: 2, repeat: Infinity }}
                       />
@@ -369,7 +373,7 @@ const InputModule = ({
                           animate={{ opacity: [1, 0.3, 1] }}
                           transition={{ duration: 1.2, repeat: Infinity }}
                         />
-                        <span className="text-[10px] tracking-[0.2em] uppercase text-primary/60 font-body">
+                        <span className="text-[10px] tracking-[0.2em] uppercase text-foreground/75 font-body">
                           Analyzing inscription...
                         </span>
                       </div>
@@ -378,7 +382,7 @@ const InputModule = ({
                 </AnimatePresence>
 
                 {isComplete && errorMessage && (
-                  <div className="absolute inset-x-4 bottom-4 rounded-sm border border-destructive/40 bg-background/90 px-4 py-3 text-xs text-destructive backdrop-blur">
+                  <div className="absolute inset-x-4 bottom-4 rounded-md border border-destructive/45 bg-background/92 px-4 py-3 text-xs text-destructive/90 backdrop-blur">
                     {errorMessage}
                   </div>
                 )}
@@ -386,7 +390,7 @@ const InputModule = ({
                 {/* Re-upload button — bottom-left of image stage */}
                 <button
                   type="button"
-                  className="absolute bottom-4 left-4 z-20 flex items-center gap-2 rounded-full border border-border/60 bg-background/80 px-3 py-1.5 text-[10px] uppercase tracking-[0.15em] text-foreground/70 backdrop-blur transition-colors hover:border-primary/50 hover:text-primary/80 hover:bg-background/90"
+                  className="absolute bottom-4 left-4 z-20 flex items-center gap-2 rounded-full border border-border/70 bg-background/85 px-3 py-1.5 text-[10px] uppercase tracking-[0.15em] text-foreground/80 backdrop-blur transition-colors shadow-[0_16px_28px_-24px_hsl(var(--primary)/0.7)] hover:border-primary/55 hover:bg-card hover:text-primary"
                   onClick={(e) => {
                     e.stopPropagation();
                     inputRef.current?.click();
@@ -405,7 +409,7 @@ const InputModule = ({
         <div className="mt-4 flex items-center justify-between gap-4">
           <button
             type="button"
-            className="text-[10px] tracking-[0.15em] uppercase text-muted-foreground/60 hover:text-primary/60 transition-colors font-body"
+            className="text-[10px] tracking-[0.15em] uppercase text-muted-foreground/80 hover:text-primary transition-colors font-body"
             onClick={handleClear}
           >
             Clear &amp; upload new
@@ -413,13 +417,13 @@ const InputModule = ({
 
           {imageUrl && (
             <div className="text-right">
-              <span className="block text-[10px] tracking-[0.15em] uppercase text-muted-foreground/45 font-body">
+              <span className="block text-[10px] tracking-[0.15em] uppercase text-muted-foreground/75 font-body">
                 {viewMode === "processed" && processedImageUrl
                   ? "Showing model-ready preprocessed image"
                   : "Showing original upload"}
               </span>
               {viewMode === "original" && processedImageUrl && lineCount > 0 && (
-                <span className="mt-1 block text-[10px] tracking-[0.12em] uppercase text-muted-foreground/40 font-body">
+                <span className="mt-1 block text-[10px] tracking-[0.12em] uppercase text-muted-foreground/65 font-body">
                   Line overlays align to the processed image view
                 </span>
               )}

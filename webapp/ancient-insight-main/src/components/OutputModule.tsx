@@ -106,7 +106,11 @@ const renderBreakdownBadges = (breakdown?: OCRTextBreakdown) => {
   return (
     <div className="flex flex-wrap gap-2">
       {stats.map((value) => (
-        <Badge key={value} variant="outline" className="border-border/70 text-[10px] uppercase tracking-[0.16em] text-foreground/70">
+        <Badge
+          key={value}
+          variant="outline"
+          className="border-border/85 bg-card/80 text-[10px] uppercase tracking-[0.16em] text-foreground/75"
+        >
           {value}
         </Badge>
       ))}
@@ -229,16 +233,16 @@ const OutputModule = ({
   );
 
   return (
-    <div className="flex flex-col flex-1 p-8 lg:p-12 pt-16 overflow-x-hidden min-w-0">
+    <div className="relative flex flex-col flex-1 overflow-x-hidden min-w-0 p-8 pt-16 lg:p-12">
       <div className="mb-6">
         <h2 className="font-display text-2xl font-light tracking-wide text-foreground/95">
           OCR Analysis
         </h2>
-        <p className="text-xs tracking-widest uppercase text-foreground/60 mt-1 font-body">
+        <p className="text-xs tracking-widest uppercase text-muted-foreground/90 mt-1 font-body">
           {isProcessing
             ? "Deciphering glyphs..."
             : isComplete
-              ? "Translation, line breakdown, and token diagnostics"
+              ? "Transliteration, Translation, and Token Diagnostics"
               : "Awaiting source material"}
         </p>
       </div>
@@ -253,7 +257,7 @@ const OutputModule = ({
                 exit={{ opacity: 0 }}
                 className="flex items-center justify-center h-full min-h-[200px]"
               >
-                <p className="text-xs tracking-[0.2em] uppercase text-muted-foreground/40 font-body">
+                <p className="text-xs tracking-[0.2em] uppercase text-muted-foreground/70 font-body">
                   Upload an inscription to begin
                 </p>
               </motion.div>
@@ -270,13 +274,13 @@ const OutputModule = ({
                   {[0, 1, 2].map((i) => (
                     <motion.div
                       key={i}
-                      className="w-1 h-1 rounded-full bg-primary/40"
+                      className="w-1 h-1 rounded-full bg-primary/55"
                       animate={{ opacity: [0.3, 1, 0.3] }}
                       transition={{ duration: 1, delay: i * 0.2, repeat: Infinity }}
                     />
                   ))}
                 </div>
-                <span className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground/60 font-body">
+                <span className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground/75 font-body">
                   Processing
                 </span>
               </motion.div>
@@ -286,12 +290,12 @@ const OutputModule = ({
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="rounded-sm border border-destructive/40 bg-destructive/5 p-4"
+                className="rounded-[10px] border border-destructive/45 bg-destructive/10 p-4"
               >
                 <p className="text-xs uppercase tracking-[0.16em] text-destructive/80">
                   OCR request failed
                 </p>
-                <p className="mt-2 text-sm text-foreground/75">{errorMessage}</p>
+                <p className="mt-2 text-sm text-foreground/85">{errorMessage}</p>
               </motion.div>
             )}
 
@@ -299,24 +303,24 @@ const OutputModule = ({
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
                 {/* ── Transliteration Section ── */}
                 <div className="space-y-3">
-                  <h3 className="text-xs tracking-[0.2em] uppercase text-foreground/55 font-body">
+                  <h3 className="text-xs tracking-[0.2em] uppercase text-foreground/70 font-body">
                     Transliteration
                   </h3>
-                  <div className="space-y-3 rounded-sm border border-border/60 bg-muted/20 p-4">
-                    <div className="font-display text-md leading-relaxed text-foreground/80 whitespace-pre-line">
-                      <span className="text-xs tracking-widest uppercase text-muted-foreground mr-2">
+                  <div className="soft-panel space-y-3 rounded-[10px] p-4">
+                    <div className="font-display text-md leading-relaxed text-foreground/92 whitespace-pre-line">
+                      <span className="text-xs tracking-widest uppercase text-primary/75 mr-2">
                         Brahmi:
                       </span>
                       <span className="font-mono text-lg">{ocrResult.brahmi_text || "n/a"}</span>
                     </div>
-                    <div className="font-display text-md leading-relaxed text-foreground/80 whitespace-pre-line">
-                      <span className="text-xs tracking-widest uppercase text-muted-foreground mr-2">
+                    <div className="font-display text-md leading-relaxed text-foreground/88 whitespace-pre-line">
+                      <span className="text-xs tracking-widest uppercase text-primary/75 mr-2">
                         Latin:
                       </span>
                       {ocrResult.latin_text || "n/a"}
                     </div>
-                    <div className="font-display text-md leading-relaxed text-foreground/80 whitespace-pre-line">
-                      <span className="text-xs tracking-widest uppercase text-muted-foreground mr-2">
+                    <div className="font-display text-md leading-relaxed text-foreground/88 whitespace-pre-line">
+                      <span className="text-xs tracking-widest uppercase text-primary/75 mr-2">
                         Devanagari:
                       </span>
                       {ocrResult.devanagari_text || "n/a"}
@@ -326,25 +330,25 @@ const OutputModule = ({
 
                 {/* ── Translation Section ── */}
                 <div className="space-y-3">
-                  <h3 className="text-xs tracking-[0.2em] uppercase text-foreground/55 font-body">
+                  <h3 className="text-xs tracking-[0.2em] uppercase text-foreground/70 font-body">
                     Translation
                   </h3>
-                  <div className="space-y-3 rounded-sm border border-border/60 bg-muted/20 p-4">
-                    <div className="font-display text-lg leading-relaxed text-foreground/80 whitespace-pre-line">
-                      <span className="text-xs tracking-widest uppercase text-muted-foreground mr-2">
+                  <div className="soft-panel space-y-3 rounded-[10px] p-4">
+                    <div className="font-display text-lg leading-relaxed text-foreground/92 whitespace-pre-line">
+                      <span className="text-xs tracking-widest uppercase text-primary/75 mr-2">
                         English:
                       </span>
                       {displayedText}
                       {!typingDone && (
                         <motion.span
-                          className="inline-block w-[2px] h-5 bg-primary/50 ml-0.5 align-text-bottom"
+                          className="inline-block w-[2px] h-5 bg-primary/70 ml-0.5 align-text-bottom"
                           animate={{ opacity: [1, 0] }}
                           transition={{ duration: 0.6, repeat: Infinity }}
                         />
                       )}
                     </div>
-                    <div className="font-display text-md leading-relaxed text-foreground/80 whitespace-pre-line">
-                      <span className="text-xs tracking-widest uppercase text-muted-foreground mr-2">
+                    <div className="font-display text-md leading-relaxed text-foreground/88 whitespace-pre-line">
+                      <span className="text-xs tracking-widest uppercase text-primary/75 mr-2">
                         Hindi:
                       </span>
                       {ocrResult.hindi_translation || "n/a"}
@@ -354,7 +358,7 @@ const OutputModule = ({
                   {renderBreakdownBadges(breakdown)}
                 </div>
 
-                <div className="space-y-3">
+                {/* <div className="space-y-3">
                   <div className="flex items-center justify-between gap-4">
                     <h3 className="text-xs tracking-[0.2em] uppercase text-muted-foreground/60 font-body">
                       Line Breakdown
@@ -410,9 +414,9 @@ const OutputModule = ({
                       No line-level OCR data returned.
                     </div>
                   )}
-                </div>
+                </div> */}
 
-                {selectedLine && (
+                {/* {selectedLine && (
                   <div className="space-y-3 rounded-sm border border-border/60 bg-background/40 p-4">
                     <div className="flex items-center justify-between gap-3">
                       <h3 className="text-xs tracking-[0.2em] uppercase text-muted-foreground/60 font-body">
@@ -434,9 +438,9 @@ const OutputModule = ({
                       characters={selectedLineCharacters}
                     />
                   </div>
-                )}
+                )} */}
 
-                <details className="rounded-sm border border-border/60 bg-background/40 p-4" open>
+                {/* <details className="rounded-sm border border-border/60 bg-background/40 p-4" open>
                   <summary className="cursor-pointer text-xs tracking-[0.2em] uppercase text-muted-foreground/60 font-body">
                     Technical Analysis
                   </summary>
@@ -484,7 +488,7 @@ const OutputModule = ({
                       </div>
                     )}
                   </div>
-                </details>
+                </details> */}
               </motion.div>
             )}
 
@@ -492,7 +496,7 @@ const OutputModule = ({
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="rounded-sm border border-border/60 bg-background/40 p-4 text-sm text-muted-foreground/60"
+                className="rounded-[10px] border border-border/75 bg-card/70 p-4 text-sm text-muted-foreground/75"
               >
                 The request completed, but no OCR payload was returned by the backend.
               </motion.div>
