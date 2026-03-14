@@ -1,73 +1,204 @@
-# Welcome to your Lovable project
+# Frontend README
 
-## Project info
+This frontend is the presentation and inspection layer for the Brahmi OCR system. It is a React + Vite + TypeScript application that sends uploaded inscription images to the FastAPI backend and renders both the final outputs and the OCR diagnostics.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+It is not just a result page. It is designed as an OCR analysis UI.
 
-## How can I edit this code?
+## Frontend Purpose
 
-There are several ways of editing your application.
+The UI is split into two panels:
 
-**Use Lovable**
+- left panel: source image inspection
+- right panel: OCR analysis and translation output
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+The frontend helps a user understand:
 
-Changes made via Lovable will be committed automatically to this repo.
+- what image was uploaded
+- what the backend-preprocessed image looks like
+- which text lines were detected
+- what each line decoded to
+- how the model tokenized and decoded the selected line
+- what the transliterated and translated outputs are
 
-**Use your preferred IDE**
+## Main Flow
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+1. User uploads an image.
+2. Frontend sends the file to `/api/upload`.
+3. Backend returns OCR data and diagnostics.
+4. Frontend displays:
+   - processed image
+   - line overlays
+   - Brahmi text
+   - Latin transliteration
+   - Devanagari transliteration
+   - Hindi translation
+   - English translation
+   - token trace
+   - character trace
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## App Structure
 
-Follow these steps:
+Main entry points:
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+- [`src/App.tsx`](src/App.tsx)
+- [`src/pages/Index.tsx`](src/pages/Index.tsx)
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+Important components:
 
-# Step 3: Install the necessary dependencies.
-npm i
+- [`src/components/InputModule.tsx`](src/components/InputModule.tsx)
+- [`src/components/OutputModule.tsx`](src/components/OutputModule.tsx)
+- [`src/types/ocr.ts`](src/types/ocr.ts)
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+## Page-Level State
+
+[`Index.tsx`](src/pages/Index.tsx) holds the shared application state:
+
+- `isProcessing`
+- `isComplete`
+- `ocrResult`
+- `errorMessage`
+- `activeLineIndex`
+
+This is the state that ties both panels together.
+
+For example:
+
+- when a line is selected on the image overlay in the left panel
+- the diagnostics for that same line are shown on the right panel
+
+## Left Panel: Input Module
+
+[`InputModule.tsx`](src/components/InputModule.tsx) handles the full image-side experience.
+
+It supports:
+
+- drag-and-drop upload
+- file picker upload
+- image clearing and re-upload
+- switching between original and processed image
+- toggling line overlays
+- selecting a line box by clicking it
+- showing a processing animation during OCR
+
+Key implementation details:
+
+- uploaded files are previewed locally through `URL.createObjectURL`
+- the component measures the rendered image frame so line boxes scale correctly
+- overlays are drawn only on the processed image view because the backend line boxes correspond to the processed image returned by OCR
+
+The left panel therefore acts like a lightweight visual debugger for preprocessing and line segmentation.
+
+## Right Panel: Output Module
+
+[`OutputModule.tsx`](src/components/OutputModule.tsx) is the text and diagnostics panel.
+
+It renders:
+
+- transliteration section
+  - Brahmi
+  - Latin
+  - Devanagari
+- translation section
+  - English
+  - Hindi
+- global OCR breakdown badges
+- line-by-line OCR breakdown
+- selected line diagnostics
+- token trace pills
+- character trace pills
+- technical analysis details
+
+Behavior worth noting:
+
+- English translation is animated with a typewriter-style reveal
+- selecting a line changes the diagnostics shown below
+- grouped token traces and character traces are resolved automatically from either global or line-level payloads
+
+## OCR Payload Type System
+
+[`src/types/ocr.ts`](src/types/ocr.ts) defines the frontend contract for the backend response.
+
+Important payload shapes:
+
+- `OCRResponse`
+- `OCRLineResult`
+- `OCRBoundingBox`
+- `OCRTextBreakdown`
+- `OCRTokenTraceEntry`
+- `OCRCharacterTraceEntry`
+
+This keeps the UI implementation explicit about what the backend returns and prevents the OCR response from turning into an untyped blob.
+
+## Backend Communication
+
+The frontend sends uploads with:
+
+- `fetch("/api/upload", { method: "POST", body: formData })`
+
+There is no hardcoded backend host in the app code. Development routing is handled by Vite proxy configuration in [`vite.config.ts`](vite.config.ts).
+
+Current proxy:
+
+- `/api/* -> http://127.0.0.1:8000`
+
+The frontend dev server runs on:
+
+- `http://localhost:8080`
+
+## Testing
+
+There is a UI test suite in [`src/test/ocr-ui.test.tsx`](src/test/ocr-ui.test.tsx).
+
+The tests cover:
+
+- rendering translated output and line diagnostics
+- switching between processed and original views
+- showing backend error states when upload fails
+
+This is useful because the frontend depends heavily on a fairly complex OCR response shape.
+
+## Run The Frontend
+
+Install dependencies:
+
+```bash
+cd webapp/ancient-insight-main
+npm install
+```
+
+Start development server:
+
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Run tests:
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+npm test
+```
 
-**Use GitHub Codespaces**
+Build for production:
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```bash
+npm run build
+```
 
-## What technologies are used for this project?
+## Tech Stack
 
-This project is built with:
+Core stack:
 
-- Vite
-- TypeScript
 - React
-- shadcn-ui
+- TypeScript
+- Vite
 - Tailwind CSS
+- Radix UI
+- Framer Motion
+- TanStack Query
 
-## How can I deploy this project?
+## Current Limitations
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+- the frontend depends on backend line boxes and traces already being correct
+- no per-character spatial bounding boxes are drawn yet
+- no history view or batch-processing view exists yet
+- OCR quality still depends on the model and the backend translation heuristics
