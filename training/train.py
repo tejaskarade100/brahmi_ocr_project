@@ -263,10 +263,24 @@ def main():
     roots = [r for r in roots if r and os.path.isdir(r)]
 
     model_name_or_path = args.model_name
+    
+    # Robust path resolution: If it looks like a local path, force it to absolute and check existence
+    if os.path.sep in model_name_or_path or model_name_or_path.startswith("/") or os.path.exists(model_name_or_path):
+        model_name_or_path = os.path.abspath(model_name_or_path)
+        if not os.path.isdir(model_name_or_path):
+            print(f"❌ Error: Model directory not found at {model_name_or_path}")
+            sys.exit(1)
+        print(f"🔍 Loading local model from: {model_name_or_path}")
+    else:
+        print(f"🌐 Loading remote model from Hub: {model_name_or_path}")
+
+    # Check for internal checkpoints (Output dir takes precedence for easy resume)
     if os.path.exists(os.path.join(args.output_dir, "config.json")):
-        model_name_or_path = args.output_dir
+        model_name_or_path = os.path.abspath(args.output_dir)
+        print(f"🔄 Resuming from local output checkpoint: {model_name_or_path}")
     elif args.drive_save_path and os.path.exists(os.path.join(args.drive_save_path, "config.json")):
-        model_name_or_path = args.drive_save_path
+        model_name_or_path = os.path.abspath(args.drive_save_path)
+        print(f"🔄 Resuming from Google Drive checkpoint: {model_name_or_path}")
 
     processor = TrOCRProcessor.from_pretrained(model_name_or_path, use_fast=False)
 
