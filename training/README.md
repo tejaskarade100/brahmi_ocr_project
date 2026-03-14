@@ -363,3 +363,756 @@ And for the metrics section:
 - translation is a downstream convenience layer, not part of OCR accuracy
 - no official held-out benchmark report is packaged here yet
 - long-sequence OCR remains weaker than isolated character and short-word OCR
+
+# Model, Dataset, And Training README
+
+This document explains the model side of the project in plain language. It covers:
+
+- what TrOCR is
+- which Python libraries are used and why
+- how the Brahmi font file is used
+- how the synthetic dataset is generated
+- how the dataset is organized
+- how training works
+- how preprocessing and prediction work
+- how to explain the logged metrics in a report
+
+If you want one short summary of this whole part of the project, it is this:
+
+> We fine-tuned a TrOCR model for Brahmi OCR using a map-driven dataset pipeline, a large synthetic image generation step, balanced training across characters and longer sequences, and an inference pipeline that preprocesses images, segments lines, and decodes Brahmi Unicode text.
+
+## 1. What This Part Of The Project Does
+
+The `training/` part of the repository is the model-development side of the project.
+
+Its job is to answer four questions:
+
+1. How do we represent Brahmi text as labeled training data?
+2. How do we create enough images to train a model well?
+3. How do we adapt a modern OCR transformer to Brahmi script?
+4. How do we measure whether the model is improving?
+
+The main files involved are:
+
+- [`train.py`](train.py)
+- [`dataset_loader.py`](dataset_loader.py)
+- [`../dataset/build_targets.py`](../dataset/build_targets.py)
+- [`../dataset/generate_synthetic.py`](../dataset/generate_synthetic.py)
+- [`../dataset/validate_dataset.py`](../dataset/validate_dataset.py)
+- [`../utils/preprocess.py`](../utils/preprocess.py)
+- [`../inference/predict.py`](../inference/predict.py)
+
+## 2. What TrOCR Is
+
+TrOCR stands for Transformer OCR. It is a sequence-to-sequence OCR model from Microsoft.
+
+In simple words:
+
+- the encoder looks at the image
+- the decoder writes the text
+
+That is different from older OCR pipelines that:
+
+- first segmented characters manually
+- then classified each character one by one
+
+For Brahmi OCR, TrOCR is useful because it can learn:
+
+- isolated characters
+- consonant plus vowel-sign combinations
+- full words
+- short phrases
+- full lines
+
+This repository uses:
+
+- base checkpoint: `microsoft/trocr-small-printed`
+
+That base model is not originally trained for Brahmi. So the project adapts it by expanding the tokenizer and fine-tuning it on Brahmi text-image pairs.
+
+## 3. Main Python Libraries Used
+
+This is the part you asked for explicitly. Below is the practical library breakdown for the model and dataset pipeline.
+
+| Library | Where it is used | Why it is used |
+| --- | --- | --- |
+| `torch` | training and inference | model execution, tensors, GPU training, dataloaders |
+| `transformers` | training and inference | TrOCR processor, model loading, tokenization, generation |
+| `sentencepiece` | processor/tokenizer support | needed by the TrOCR tokenizer stack |
+| `jiwer` | training evaluation | CER and WER calculation |
+| `Pillow` | dataset generation, loading, resizing | text rendering, image creation, image IO |
+| `opencv-python` (`cv2`) | preprocessing, line segmentation, synthetic effects | thresholding, blur, morphology, contrast work |
+| `numpy` | synthetic generation and preprocessing | pixel arrays and image math |
+| `uharfbuzz` | synthetic text rendering | correct shaping of Brahmi dependent signs |
+| `freetype-py` | synthetic text rendering | low-level glyph rendering with HarfBuzz |
+| `scipy` | synthetic generation, optional | elastic distortion for stone-style images |
+| `matplotlib` | optional analysis | inspection or notebook visualization |
+| `tqdm` | optional progress display | progress bars in longer runs |
+
+### What each library is doing in this project
+
+#### `torch`
+
+Used in:
+
+- [`train.py`](train.py)
+- [`../inference/predict.py`](../inference/predict.py)
+
+It handles:
+
+- model training
+- automatic mixed precision on CUDA
+- gradient accumulation
+- dataloaders
+- optimizer updates
+
+#### `transformers`
+
+Used for:
+
+- `TrOCRProcessor`
+- `VisionEncoderDecoderModel`
+- scheduler creation
+
+This is the core OCR model library in the project.
+
+#### `Pillow`
+
+Used in:
+
+- dataset generation
+- dataset loading
+- resizing and letterboxing
+
+It handles:
+
+- creating blank canvases
+- drawing Brahmi text
+- saving generated images
+- opening existing images
+
+#### `opencv-python`
+
+Used in:
+
+- preprocessing
+- thresholding
+- denoising
+- line segmentation
+- synthetic style degradation
+
+This is the main image-processing library in the project.
+
+#### `uharfbuzz` and `freetype-py`
+
+These two are very important for Brahmi.
+
+They are used in [`../dataset/generate_synthetic.py`](../dataset/generate_synthetic.py) to shape and render Brahmi text correctly, especially when dependent vowel signs must attach to a base letter properly.
+
+Without shaping support, Brahmi marks can appear detached or visually wrong.
+
+#### `scipy`
+
+Used optionally for elastic distortion in the stone-style generator. If it is missing, generation still works, but the distortion quality is reduced.
+
+## 4. The Font File And How It Is Used
+
+The font file used by the generator is:
+
+- [`../NotoSansBrahmi-Regular.ttf`](../NotoSansBrahmi-Regular.ttf)
+
+This font is critical because the synthetic dataset is created by rendering Brahmi Unicode text into image files.
+
+### Where the font is used
+
+The font is used inside [`../dataset/generate_synthetic.py`](../dataset/generate_synthetic.py), mainly through:
+
+- `render_base_text(...)`
+- `_HarfBuzzRenderer`
+- Pillow font loading
+
+### How it works
+
+1. The script receives a Brahmi label such as a character, word, or phrase.
+2. It loads `NotoSansBrahmi-Regular.ttf`.
+3. It renders that Brahmi Unicode text into an image.
+4. It then applies style effects like rotation, noise, blur, vignette, and warping.
+
+### Why the font matters
+
+If the font does not support Brahmi correctly:
+
+- the output images will be wrong
+- vowel signs may be detached
+- the model will learn broken shapes
+
+### Why HarfBuzz is used with the font
+
+Simple drawing is often not enough for Indic or historic scripts. HarfBuzz helps shape the text before rendering, so dependent vowel signs and combining marks are positioned more correctly.
+
+In short:
+
+- font file gives the glyph shapes
+- HarfBuzz gives correct shaping behavior
+- FreeType rasterizes the shaped glyphs
+- Pillow is used for image composition and saving
+
+That is the rendering stack used for synthetic data.
+
+## 5. How The Dataset Is Organized
+
+The full dataset is controlled by:
+
+- [`../dataset/map.json`](../dataset/map.json)
+
+This file is the label map for the entire OCR system.
+
+It tells the project:
+
+- which folders exist
+- what label each folder corresponds to
+- which folders are fixed-label folders
+- which folder is the mixed-text folder
+
+Top-level dataset groups:
+
+- `1Vowels`
+- `2Consonants`
+- `3Numbers`
+- `4Extras`
+- `5Words_Phrases`
+
+Mapped entry breakdown in this repository:
+
+| Group | Entries | Share |
+| --- | ---: | ---: |
+| Vowels | 14 | 2.35% |
+| Consonant and matra combinations | 518 | 86.77% |
+| Numbers | 30 | 5.03% |
+| Extras and signs | 34 | 5.70% |
+| Mixed text bucket | 1 | 0.17% |
+| Total | 597 | 100% |
+
+This tells you something important about the project:
+
+- it is not only learning base letters
+- most of the class space is consonant-plus-sign combinations
+- the OCR task is sequence-aware, not only character-aware
+
+## 6. Hybrid Dataset Design
+
+The project is built for a hybrid dataset design:
+
+- fixed labeled classes from folders
+- mixed text samples from label manifests
+- synthetic generation to fill missing coverage
+- support for adding curated real samples later
+
+In the current repository snapshot, the packaged image set is mostly generated. But the pipeline itself is designed so real curated samples and synthetic samples can live together in the same folder structure.
+
+A good documentation sentence is:
+
+> We used a hybrid Brahmi OCR dataset design combining map-driven labeled folders, mixed text manifests, and large-scale synthetic generation for balanced training across characters, words, phrases, and multiline text.
+
+## 7. Actual Dataset Size In This Repository
+
+Current image counts on disk are:
+
+| Folder | Images |
+| --- | ---: |
+| `1Vowels` | 1,400 |
+| `2Consonants` | 51,800 |
+| `3Numbers` | 3,000 |
+| `4Extras` | 3,400 |
+| `5Words_Phrases` | 28,000 |
+| Total | 87,600 |
+
+That means the dataset is large enough to train a meaningful OCR model, but it also means balancing is necessary because fixed classes can dominate mixed text if everything is used naively.
+
+## 8. How Synthetic Data Is Generated
+
+Synthetic data generation happens in:
+
+- [`../dataset/build_targets.py`](../dataset/build_targets.py)
+- [`../dataset/generate_synthetic.py`](../dataset/generate_synthetic.py)
+- [`../dataset/postcheck.py`](../dataset/postcheck.py)
+
+### Step 1: build generation targets
+
+[`build_targets.py`](../dataset/build_targets.py) checks:
+
+- how many images already exist in each folder
+- how many more are needed
+- how those new images should be split across styles
+
+It writes a manifest file:
+
+- [`../dataset/reports/targets_manifest.csv`](../dataset/reports/targets_manifest.csv)
+
+### Step 2: render Brahmi text
+
+[`generate_synthetic.py`](../dataset/generate_synthetic.py) reads that manifest and renders Brahmi text using:
+
+- `NotoSansBrahmi-Regular.ttf`
+- Pillow
+- HarfBuzz and FreeType when available
+
+### Step 3: apply visual styles
+
+The generator applies one of three style pipelines:
+
+- clean
+- manuscript
+- stone
+
+These are not just labels. They correspond to different image effects.
+
+#### Clean style
+
+Used to simulate cleaner scans or controlled samples.
+
+Typical effects:
+
+- mild perspective warp
+- small rotation
+- mostly clean white background
+
+#### Manuscript style
+
+Used to simulate more organic document-like conditions.
+
+Typical effects:
+
+- stronger perspective warp
+- blur
+- vignette
+- erosion
+- random noise
+- contrast and brightness variation
+
+#### Stone style
+
+Used to simulate inscriptions carved on rough surfaces.
+
+Typical effects:
+
+- stronger warp
+- elastic distortion
+- dilation or erosion
+- blur
+- stronger noise
+- shadows and non-uniform lighting
+
+### Step 4: save images and labels
+
+For mixed text, the script also saves metadata into:
+
+- [`../dataset/5Words_Phrases/labels.json`](../dataset/5Words_Phrases/labels.json)
+
+That file stores:
+
+- image filename
+- Brahmi text
+- sequence type
+- style
+- word count
+- line count
+
+## 9. Background Style Percentages
+
+The synthetic style split is explicit in the generator logic:
+
+- clean: 40%
+- manuscript: 35%
+- stone: 25%
+
+That is the correct README wording for generated backgrounds.
+
+You can say:
+
+> The synthetic dataset used 40% clean samples, 35% manuscript-style samples, and 25% stone-style samples to expose the OCR model to both controlled and degraded visual conditions.
+
+## 10. Word, Phrase, Sentence, And Multiline Generation
+
+The mixed-text generator supports four sequence types:
+
+- `word`
+- `phrase`
+- `sentence`
+- `multiline`
+
+Current metadata breakdown inside `5Words_Phrases`:
+
+| Sequence type | Count | Share |
+| --- | ---: | ---: |
+| Word | 10,000 | 35.71% |
+| Phrase | 10,000 | 35.71% |
+| Sentence | 4,000 | 14.29% |
+| Multiline | 4,000 | 14.29% |
+
+### How those are generated
+
+- word: 1 word
+- phrase: 2 to 4 words
+- sentence: 5 to 10 words
+- multiline: 2 to 4 lines with 6 to 15 words total
+
+This is important because it teaches the model not only to recognize single glyphs but also to decode longer sequences.
+
+## 11. Vowel Percentage: What It Really Means
+
+You asked about vowel percentage breakdown, so this needs to be explained carefully.
+
+There are two different meanings of "vowel percentage" in this project.
+
+### A. Vowel share in the class inventory
+
+Independent vowels are:
+
+- 14 out of 597 mapped entries
+- 2.35% of the mapped inventory
+
+This is a class-space number.
+
+### B. Vowel behavior in synthetic word generation
+
+The mixed-text generator does not force a fixed final vowel percentage in every generated word. Instead it uses a bias:
+
+- first position may use an independent vowel with 15% probability
+- otherwise it prefers consonant syllables
+- after the first position, consonant syllables are preferred about 85% of the time
+
+That means the generator is intentionally consonant-dominant, which makes sense for Brahmi word-like generation.
+
+The safest report wording is:
+
+> Independent vowels form 2.35% of the mapped class inventory, while mixed-text generation uses a 15% initial-vowel probability and otherwise prefers consonant syllables to keep synthetic words visually realistic.
+
+## 12. How Training Data Is Loaded
+
+Training data loading is handled by:
+
+- [`dataset_loader.py`](dataset_loader.py)
+
+This file:
+
+- reads `map.json`
+- loads fixed-label samples
+- loads mixed-text samples from labels files
+- classifies samples into categories
+- applies runtime caps
+- prepares data for the TrOCR processor
+
+### The four training categories
+
+Every sample is grouped into one of:
+
+- `characters_ngrams`
+- `words`
+- `phrases`
+- `long_sentences`
+
+This is why the training script can print separate metrics for different sequence lengths.
+
+### Runtime caps
+
+The training loader can cap dataset size with:
+
+- `max_fixed_per_class`
+- `max_words`
+- `max_phrases`
+- `max_long_sentences`
+
+This is very important because it prevents the model from being overwhelmed by the largest buckets.
+
+### Weighted sampling
+
+The loader can also create a weighted sampler so the model sees a more balanced stream of:
+
+- short samples
+- medium samples
+- long samples
+
+That is a major reason the training pipeline is stronger than just shuffling all files together.
+
+## 13. How The Brahmi TrOCR Model Is Adapted
+
+Training is implemented in:
+
+- [`train.py`](train.py)
+
+The process is:
+
+1. Load `microsoft/trocr-small-printed`.
+2. Load the processor.
+3. Scan the Brahmi dataset labels.
+4. Add any missing Brahmi characters to the tokenizer.
+5. Resize the decoder embedding matrix.
+6. Train on Brahmi image-text pairs.
+7. Save the best checkpoint to `model/brahmi_trocr`.
+
+From your logged run:
+
+- 109 new tokens were added
+- vocabulary size became `64111`
+
+This is how a model originally built for printed OCR is adapted for Brahmi OCR.
+
+## 14. Why The Missing Pooler Warning Is Not A Problem
+
+Your log included:
+
+- `encoder.pooler.dense.bias | MISSING`
+- `encoder.pooler.dense.weight | MISSING`
+
+That is acceptable here because:
+
+- the pooler is not the main feature used for sequence generation
+- the model still loads correctly
+- Hugging Face initializes those weights automatically
+
+So this is a warning to note, not a training failure.
+
+## 15. Training Configuration In This Project
+
+Important settings from [`train.py`](train.py):
+
+- base model: `microsoft/trocr-small-printed`
+- optimizer: `AdamW`
+- scheduler: cosine schedule with warmup
+- default batch size: `2`
+- default gradient accumulation: `8`
+- default image size: `384`
+- default early stopping patience: `3`
+- optional balanced sampling
+- optional FP16 on CUDA
+
+Recommended command:
+
+```bash
+python training/train.py --balanced_sampling --gradient_accumulation_steps 8 --image_size 384
+```
+
+## 16. Training Split From Your Logged Run
+
+Your log showed this training distribution.
+
+### Train split
+
+- total samples: `47,488`
+- characters and n-grams: `25,172` (`53.01%`)
+- words: `7,987` (`16.82%`)
+- phrases: `7,952` (`16.75%`)
+- long sentences: `6,377` (`13.43%`)
+
+### Validation split
+
+- total samples: `5,936`
+- characters and n-grams: `3,074` (`51.79%`)
+- words: `998` (`16.81%`)
+- phrases: `1,036` (`17.45%`)
+- long sentences: `828` (`13.95%`)
+
+This is a much better training mix than a dataset dominated by only single characters.
+
+## 17. How To Understand The Metrics
+
+The training script reports:
+
+- loss
+- CER
+- WER
+- exact match
+- first-character accuracy
+- length ratio
+
+### CER
+
+Character Error Rate.
+
+Lower is better.
+
+If CER is `0.20`, that means the character-level edit distance is about 20%.
+
+### WER
+
+Word Error Rate.
+
+Lower is better.
+
+This is useful for longer predictions, but it is not the same thing as plain word accuracy.
+
+### Exact match
+
+This means the full predicted sequence exactly matched the reference string.
+
+### First-character accuracy
+
+This is a useful diagnostic for sequence collapse. If the first character is right but the rest is wrong, the model may be partially reading but not fully decoding the sequence.
+
+### Length ratio
+
+This compares predicted length to target length.
+
+If it is close to `1.0`, the model is producing outputs of a more realistic size.
+
+## 18. What Your Logged Training Run Shows
+
+From the log, the model improved steadily over the first six epochs:
+
+| Epoch | Train Loss | Val Loss | CER | WER | Exact | First Char |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1 | 6.5537 | 2.7321 | 1.0076 | 1.4880 | 0.03 | 0.34 |
+| 2 | 2.6247 | 1.7909 | 0.6803 | 1.0484 | 0.09 | 0.81 |
+| 3 | 1.7528 | 1.1721 | 0.4798 | 0.8860 | 0.31 | 0.89 |
+| 4 | 1.1403 | 0.7874 | 0.3369 | 0.5923 | 0.66 | 0.92 |
+| 5 | 0.9008 | 0.6825 | 0.3023 | 0.4785 | 0.73 | 0.95 |
+| 6 | 0.6941 | 0.4422 | 0.1969 | 0.4051 | 0.77 | 0.96 |
+
+Plain-language interpretation:
+
+- the model started badly
+- it improved quickly after the first few epochs
+- it became much better at predicting full sequences
+- it became much better at keeping output length realistic
+- by epoch 6 it was clearly learning the task
+
+## 19. Documentation-Friendly Accuracy Wording
+
+You said you want readable accuracy wording and not an overclaimed benchmark. The safest way to write it is:
+
+> In the documented validation run, the model reached a CER of 0.1969 and an exact-sequence match of 0.77 by epoch 6. For presentation purposes, this can be described as roughly 80.3% character-level accuracy proxy using `1 - CER`, while clearly noting that it is a project-run indicator rather than a formal benchmark.
+
+You can also mention:
+
+- exact sequence match: about `77%`
+- first-character accuracy: about `96%`
+
+Avoid calling `1 - WER` a strict official word accuracy, because WER is an edit-distance measure, not a simple accuracy percentage.
+
+## 20. Category-Wise Reading Of The Validation Metrics
+
+Epoch 6 category metrics from your log:
+
+- char: CER `0.0448`, WER `0.0384`
+- word: CER `0.0139`, WER `0.0631`
+- phrase: CER `0.0415`, WER `0.1982`
+- long: CER `0.3091`, WER `0.7525`
+
+What that means:
+
+- isolated characters are already strong
+- short words are also strong
+- phrases are reasonable but still harder
+- long sequences are the weakest part and need the most improvement
+
+That pattern is normal for an OCR system that is moving from glyph recognition into full sequence recognition.
+
+## 21. Preprocessing Before Prediction
+
+Image preprocessing is implemented in:
+
+- [`../utils/preprocess.py`](../utils/preprocess.py)
+
+The pipeline is:
+
+1. load image
+2. convert to grayscale
+3. denoise with Gaussian blur
+4. improve contrast using CLAHE
+5. optionally threshold the image
+6. resize with aspect-ratio-preserving padding
+7. convert back to RGB for model input
+
+Supported threshold methods:
+
+- `adaptive`
+- `otsu`
+- `simple`
+- `auto`
+
+The `auto` mode decides whether thresholding is needed by checking:
+
+- contrast
+- blur level
+
+This is important because some images are already clean scans, while others are noisy photos of inscriptions.
+
+## 22. How Prediction Works
+
+Prediction code is in:
+
+- [`../inference/predict.py`](../inference/predict.py)
+
+The prediction flow is:
+
+1. load trained processor and model
+2. optionally preprocess the image
+3. optionally segment into lines
+4. letterbox each crop to a square image
+5. run beam-search decoding
+6. decode Brahmi Unicode output
+7. optionally return debug information
+
+Generation settings used during inference include:
+
+- `num_beams = 4`
+- `no_repeat_ngram_size = 3`
+- `length_penalty = 2.0`
+- `early_stopping = True`
+
+These settings help reduce repetitive or collapsed outputs.
+
+## 23. How Multiline OCR Works
+
+Multiline OCR in this repository is handled by line segmentation before decoding.
+
+The script:
+
+- thresholds the image
+- computes row activity
+- finds line regions
+- crops line boxes
+- runs OCR on each line separately
+- joins the results in reading order
+
+So this is not a full page-layout transformer. It is a line-aware OCR pipeline.
+
+## 24. Debug Information Returned By Prediction
+
+When debug mode is enabled, prediction can return:
+
+- line bounding boxes
+- token trace
+- character trace
+- text breakdown
+- preprocessing metadata
+- line padding metadata
+
+That is very useful for demos and for debugging model mistakes.
+
+## 25. Good Report Wording You Can Reuse
+
+### Model description
+
+> The OCR engine is based on Microsoft TrOCR small printed, adapted for Brahmi by extending the tokenizer with Brahmi Unicode symbols and fine-tuning it on a map-driven dataset of fixed character classes and synthetic mixed-text samples.
+
+### Dataset description
+
+> The dataset pipeline combines folder-labeled Brahmi classes with synthetic rendering using the Noto Sans Brahmi font, HarfBuzz-based shaping, and style augmentation for clean, manuscript-like, and stone-like conditions. Generated samples were distributed as 40% clean, 35% manuscript, and 25% stone style.
+
+### Training description
+
+> Training used balanced sequence categories across characters, words, phrases, and longer text, along with weighted sampling, gradient accumulation, and mixed-precision GPU training where available.
+
+### Metrics description
+
+> In the documented run, validation CER improved to 0.1969 by epoch 6, with exact-sequence match reaching 0.77 and first-character accuracy reaching 0.96. These values are best treated as project-run indicators rather than a formal benchmark.
+
+## 26. Limitations
+
+- the packaged dataset is still mostly synthetic
+- synthetic text is not identical to real inscription language distribution
+- long-sequence OCR is still weaker than short-sequence OCR
+- translation quality is a separate downstream problem and should not be confused with OCR accuracy
+- no formal published benchmark split is included yet

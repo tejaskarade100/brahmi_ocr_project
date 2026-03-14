@@ -421,3 +421,499 @@ For deeper understanding:
 - multiline OCR is line-segmentation-based, not full page-layout understanding
 - no formal benchmark split is packaged in this repository yet
 - reported metrics should be treated as project-run indicators, not publication-grade evaluation
+
+
+# Brahmi OCR Project
+
+This repository is a full Brahmi OCR system. It is not only a model folder and not only a frontend demo. It is a complete pipeline that includes:
+
+- dataset definition
+- synthetic data generation
+- TrOCR fine-tuning
+- OCR inference
+- transliteration
+- translation
+- FastAPI backend
+- React frontend
+
+If you want one short summary of the whole project, it is this:
+
+> A user uploads an inscription image, the system preprocesses it, runs OCR to predict Brahmi Unicode text, transliterates the result into Devanagari and Latin, translates it into Hindi and English, and shows both the final outputs and detailed OCR diagnostics in a web UI.
+
+## 1. What The Project Is Trying To Solve
+
+The project is designed for OCR on Brahmi script, especially in conditions where text may come from:
+
+- inscription-style images
+- manuscript-like images
+- scanned text images
+- noisy or low-quality captures
+
+The system is built to handle more than isolated glyphs. It aims to work across:
+
+- single characters
+- consonant and vowel-sign combinations
+- words
+- phrases
+- long text lines
+- multiline images
+
+That is why the repository includes more than one type of data and more than one type of output.
+
+## 2. Full End-To-End Pipeline
+
+The full project flow is:
+
+`image -> preprocessing -> OCR -> transliteration -> translation -> frontend diagnostics`
+
+In simple steps:
+
+1. A user uploads an image.
+2. The backend saves that image temporarily.
+3. The image is preprocessed for OCR.
+4. The OCR model predicts Brahmi Unicode text.
+5. The Brahmi output is transliterated into:
+   - Devanagari
+   - Latin
+6. The Devanagari output is translated into:
+   - Hindi
+   - English
+7. The frontend shows:
+   - original image
+   - processed image
+   - line boxes
+   - OCR text
+   - transliteration
+   - translation
+   - token and character traces
+
+## 3. Main Project Folders
+
+The important top-level folders are:
+
+- [`dataset/`](dataset/)
+- [`training/`](training/)
+- [`inference/`](inference/)
+- [`utils/`](utils/)
+- [`backend/`](backend/)
+- [`webapp/ancient-insight-main/`](webapp/ancient-insight-main/)
+- [`model/`](model/)
+
+### What each folder does
+
+#### `dataset/`
+
+Contains:
+
+- `map.json`
+- synthetic generation scripts
+- validation scripts
+- image folders
+- mixed-text labels
+
+This is where the OCR dataset is defined and managed.
+
+#### `training/`
+
+Contains:
+
+- model training script
+- dataset loader
+- model/dataset/training documentation
+
+This is where the OCR model is fine-tuned.
+
+#### `inference/`
+
+Contains:
+
+- prediction script used by CLI and backend
+
+This is where trained OCR is executed on new images.
+
+#### `utils/`
+
+Contains:
+
+- preprocessing functions
+
+This is shared by inference and backend.
+
+#### `backend/`
+
+Contains:
+
+- FastAPI server
+- transliteration layer
+- translation layer
+
+This is the service layer that connects OCR to the frontend.
+
+#### `webapp/ancient-insight-main/`
+
+Contains:
+
+- React frontend
+- OCR diagnostics UI
+
+This is the user-facing layer of the project.
+
+#### `model/`
+
+Contains:
+
+- saved trained TrOCR checkpoint
+
+This is the model output folder used during inference.
+
+## 4. The Core Files You Should Know First
+
+If you want to understand the project quickly, start with these files:
+
+- [`dataset/map.json`](dataset/map.json)
+- [`dataset/generate_synthetic.py`](dataset/generate_synthetic.py)
+- [`training/train.py`](training/train.py)
+- [`training/dataset_loader.py`](training/dataset_loader.py)
+- [`utils/preprocess.py`](utils/preprocess.py)
+- [`inference/predict.py`](inference/predict.py)
+- [`backend/main.py`](backend/main.py)
+- [`backend/transliterator.py`](backend/transliterator.py)
+- [`backend/translator.py`](backend/translator.py)
+- [`webapp/ancient-insight-main/src/pages/Index.tsx`](webapp/ancient-insight-main/src/pages/Index.tsx)
+
+## 5. Main Technologies And Libraries Used
+
+This section explains the full stack at a project level.
+
+| Area | Main libraries or tools | Why they are used |
+| --- | --- | --- |
+| OCR model | `transformers`, `torch` | TrOCR training and inference |
+| OCR evaluation | `jiwer` | CER and WER calculation |
+| Synthetic generation | `Pillow`, `opencv-python`, `numpy`, `uharfbuzz`, `freetype-py`, optional `scipy` | rendering Brahmi text and simulating real-world image conditions |
+| Preprocessing | `opencv-python`, `Pillow`, `numpy` | denoising, thresholding, resizing, line segmentation |
+| Backend | `fastapi`, `uvicorn`, `python-multipart`, `deep-translator` | API, upload handling, translation |
+| Frontend | React, TypeScript, Vite, Tailwind CSS, Radix UI, Framer Motion | UI, interactions, diagnostics |
+
+## 6. How The Dataset Part Works
+
+The dataset pipeline is controlled by:
+
+- [`dataset/map.json`](dataset/map.json)
+
+This file is the label map of the project. It tells the system:
+
+- which folders exist
+- what label each folder corresponds to
+- which folders are fixed classes
+- which folder stores mixed text
+
+Top-level dataset groups:
+
+- `1Vowels`
+- `2Consonants`
+- `3Numbers`
+- `4Extras`
+- `5Words_Phrases`
+
+Mapped entry breakdown:
+
+| Group | Entries | Share |
+| --- | ---: | ---: |
+| Vowels | 14 | 2.35% |
+| Consonant and matra combinations | 518 | 86.77% |
+| Numbers | 30 | 5.03% |
+| Extras and signs | 34 | 5.70% |
+| Mixed text bucket | 1 | 0.17% |
+| Total | 597 | 100% |
+
+The dataset is set up as a hybrid design:
+
+- folder-labeled class samples
+- mixed-text manifest samples
+- synthetic generation for balancing and scale
+
+In this repository snapshot, most images are generated, but the format supports mixing in curated real samples later.
+
+Current image counts on disk:
+
+| Folder | Images |
+| --- | ---: |
+| `1Vowels` | 1,400 |
+| `2Consonants` | 51,800 |
+| `3Numbers` | 3,000 |
+| `4Extras` | 3,400 |
+| `5Words_Phrases` | 28,000 |
+| Total | 87,600 |
+
+## 7. How Synthetic Generation Fits Into The Project
+
+Synthetic generation is a major part of the project because real labeled Brahmi OCR data is limited.
+
+The generator uses:
+
+- [`NotoSansBrahmi-Regular.ttf`](NotoSansBrahmi-Regular.ttf)
+- Pillow for image creation
+- HarfBuzz and FreeType for shaping and rendering
+- OpenCV and NumPy for image effects
+
+Main generator scripts:
+
+- [`dataset/build_targets.py`](dataset/build_targets.py)
+- [`dataset/generate_synthetic.py`](dataset/generate_synthetic.py)
+- [`dataset/postcheck.py`](dataset/postcheck.py)
+
+The synthetic dataset uses three visual styles:
+
+- clean: 40%
+- manuscript: 35%
+- stone: 25%
+
+Mixed-text generation currently includes:
+
+- word: 10,000
+- phrase: 10,000
+- sentence: 4,000
+- multiline: 4,000
+
+This is one of the main reasons the OCR model can learn both short and longer outputs instead of only single-character recognition.
+
+## 8. How Training Fits Into The Project
+
+Training is handled by:
+
+- [`training/train.py`](training/train.py)
+- [`training/dataset_loader.py`](training/dataset_loader.py)
+
+The project uses:
+
+- base model: `microsoft/trocr-small-printed`
+- tokenizer expansion for Brahmi Unicode
+- balanced sampling
+- gradient accumulation
+- FP16 on CUDA when available
+- CER and WER for evaluation
+
+From the documented run you shared:
+
+- 109 new tokens were added to the tokenizer
+- best reported epoch in the pasted log was epoch 6
+- by epoch 6:
+  - CER: `0.1969`
+  - WER: `0.4051`
+  - exact match: `0.77`
+  - first-character accuracy: `0.96`
+
+A documentation-friendly way to phrase this is:
+
+> In the documented validation run, the OCR model reached a CER of 0.1969 and an exact-sequence match of 0.77 by epoch 6, which can be described as roughly 80.3% character-level accuracy proxy using `1 - CER`, while noting that this is a project-run indicator rather than a formal benchmark.
+
+For the full model-side explanation, read:
+
+- [`training/README.md`](training/README.md)
+
+## 9. How Inference Works
+
+Inference is implemented in:
+
+- [`inference/predict.py`](inference/predict.py)
+
+It does the following:
+
+1. Load the trained model and processor.
+2. Optionally preprocess the image.
+3. Optionally split the image into lines.
+4. Letterbox each image or crop into the target input size.
+5. Decode Brahmi text with beam search.
+6. Return either plain text or structured JSON.
+
+Structured prediction output can include:
+
+- predicted Brahmi text
+- line bounding boxes
+- per-line output
+- token trace
+- character trace
+- text statistics
+- preprocessing metadata
+- base64 processed image
+
+## 10. How Preprocessing Works
+
+Preprocessing is implemented in:
+
+- [`utils/preprocess.py`](utils/preprocess.py)
+
+The preprocessing pipeline is:
+
+1. image loading
+2. grayscale conversion
+3. denoising
+4. contrast enhancement
+5. optional thresholding
+6. aspect-ratio-safe resizing and padding
+7. RGB conversion for model input
+
+Supported threshold methods:
+
+- `adaptive`
+- `otsu`
+- `simple`
+- `auto`
+
+The `auto` mode decides whether a heavy thresholding step is needed by checking image contrast and blur heuristics.
+
+## 11. How The Backend Fits In
+
+The backend is implemented in:
+
+- [`backend/main.py`](backend/main.py)
+
+It is responsible for:
+
+- receiving uploads
+- calling OCR inference
+- transliterating Brahmi output
+- translating the output
+- returning one structured response to the frontend
+
+It uses:
+
+- FastAPI
+- Uvicorn
+- `deep-translator`
+- the OCR inference module
+
+For the detailed backend explanation, read:
+
+- [`backend/README.md`](backend/README.md)
+
+## 12. How The Frontend Fits In
+
+The frontend is implemented in:
+
+- [`webapp/ancient-insight-main/`](webapp/ancient-insight-main/)
+
+It is responsible for:
+
+- image upload
+- showing original and processed images
+- drawing OCR line overlays
+- showing OCR text
+- showing transliteration and translation
+- showing token and character diagnostics
+
+It uses:
+
+- React
+- TypeScript
+- Vite
+- Tailwind CSS
+- Radix UI
+- Framer Motion
+
+For the detailed frontend explanation, read:
+
+- [`webapp/ancient-insight-main/README.md`](webapp/ancient-insight-main/README.md)
+
+## 13. Full Project Request Flow
+
+From the moment a user uploads a file, the complete flow is:
+
+1. Frontend uploads image to `/api/upload`.
+2. Backend stores the image temporarily.
+3. Backend runs OCR with preprocessing and multiline mode.
+4. OCR returns Brahmi Unicode text plus debug data.
+5. Backend transliterates Brahmi to Devanagari.
+6. Backend transliterates Brahmi to Latin.
+7. Backend translates the Devanagari text into Hindi and English.
+8. Backend returns a JSON payload.
+9. Frontend shows:
+   - final text
+   - translations
+   - overlays
+   - traces
+   - diagnostics
+
+## 14. Project Structure
+
+```text
+brahmi_ocr_project/
+|-- backend/
+|-- dataset/
+|-- inference/
+|-- model/
+|-- training/
+|-- utils/
+|-- webapp/ancient-insight-main/
+|-- brahmi.json
+|-- NotoSansBrahmi-Regular.ttf
+|-- colab_training.ipynb
+|-- kaggle_training.ipynb
+|-- requirements.txt
+|-- README.md
+```
+
+## 15. How To Run The Project
+
+### Install Python dependencies
+
+```bash
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+### Run backend
+
+```bash
+cd backend
+pip install -r requirements.txt
+python -m uvicorn main:app --reload --port 8000
+```
+
+### Run frontend
+
+```bash
+cd webapp/ancient-insight-main
+npm install
+npm run dev
+```
+
+The frontend runs on port `8080` and proxies `/api/*` requests to `http://127.0.0.1:8000`.
+
+### Run OCR inference from CLI
+
+```bash
+python inference/predict.py --image path/to/image.png --preprocess --multiline --debug
+```
+
+### Run training
+
+```bash
+python training/train.py --balanced_sampling --gradient_accumulation_steps 8 --image_size 384
+```
+
+### Run dataset generation pipeline
+
+```bash
+python dataset/validate_dataset.py --data_dir dataset --json_out dataset/reports/precheck.json
+python dataset/build_targets.py --data_dir dataset --map_file map.json --out_csv dataset/reports/targets_manifest.csv
+python dataset/generate_synthetic.py --data_dir dataset --manifest dataset/reports/targets_manifest.csv
+python dataset/postcheck.py --data_dir dataset --manifest dataset/reports/targets_manifest.csv
+python dataset/validate_dataset.py --data_dir dataset --json_out dataset/reports/final_report.json --strict
+```
+
+## 16. Which README To Read For What
+
+- full model, dataset, font, synthetic generation, training, preprocessing, and metrics: [`training/README.md`](training/README.md)
+- backend API, transliteration, translation, and response flow: [`backend/README.md`](backend/README.md)
+- frontend UI structure, state flow, overlays, and testing: [`webapp/ancient-insight-main/README.md`](webapp/ancient-insight-main/README.md)
+
+## 17. Current Limitations
+
+- the current packaged dataset is still mostly synthetic
+- transliteration is mapping-based, not grammar-aware
+- translation is a practical downstream layer, not a historical language engine
+- multiline OCR is line-segmentation-based, not full document layout modeling
+- no formal benchmark split is packaged in the repository yet
+- reported metrics should be treated as project-run indicators, not publication-grade claims
