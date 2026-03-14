@@ -106,6 +106,21 @@ def print_dataset_summary(title: str, summary: Dict):
     print(f"  Long sentences        : {c_long} ({pct(c_long):.2f}%)")
 
 
+def _looks_like_local_model_path(value: str) -> bool:
+    if not value:
+        return False
+
+    expanded = os.path.expanduser(value)
+    if os.path.exists(expanded) or os.path.isabs(expanded):
+        return True
+
+    if expanded.startswith((".", "~", os.path.sep)):
+        return True
+
+    drive, _ = os.path.splitdrive(expanded)
+    return bool(drive)
+
+
 def load_model(model_name: str, processor, dataset_chars: List[str], max_new_tokens: int):
     model = VisionEncoderDecoderModel.from_pretrained(model_name)
     existing_vocab = processor.tokenizer.get_vocab()
@@ -263,16 +278,6 @@ def main():
     roots = [r for r in roots if r and os.path.isdir(r)]
 
     model_name_or_path = args.model_name
-    
-    # Robust path resolution: If it looks like a local path, force it to absolute and check existence
-    if os.path.sep in model_name_or_path or model_name_or_path.startswith("/") or os.path.exists(model_name_or_path):
-        model_name_or_path = os.path.abspath(model_name_or_path)
-        if not os.path.isdir(model_name_or_path):
-            print(f"❌ Error: Model directory not found at {model_name_or_path}")
-            sys.exit(1)
-        print(f"🔍 Loading local model from: {model_name_or_path}")
-    else:
-        print(f"🌐 Loading remote model from Hub: {model_name_or_path}")
 
     # Check for internal checkpoints (Output dir takes precedence for easy resume)
     if os.path.exists(os.path.join(args.output_dir, "config.json")):
@@ -281,6 +286,15 @@ def main():
     elif args.drive_save_path and os.path.exists(os.path.join(args.drive_save_path, "config.json")):
         model_name_or_path = os.path.abspath(args.drive_save_path)
         print(f"🔄 Resuming from Google Drive checkpoint: {model_name_or_path}")
+
+    if _looks_like_local_model_path(model_name_or_path):
+        model_name_or_path = os.path.abspath(os.path.expanduser(model_name_or_path))
+        if not os.path.isdir(model_name_or_path):
+            print(f"❌ Error: Model directory not found at {model_name_or_path}")
+            sys.exit(1)
+        print(f"🔍 Loading local model from: {model_name_or_path}")
+    else:
+        print(f"🌐 Loading remote model from Hub: {model_name_or_path}")
 
     processor = TrOCRProcessor.from_pretrained(model_name_or_path, use_fast=False)
 

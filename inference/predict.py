@@ -200,6 +200,7 @@ def predict(
     debug: bool = False,
     multiline: bool = False,
     return_base64: bool = False,
+    max_new_tokens: int | None = None,
 ) -> Dict:
     preprocess_info = {}
     original_image = Image.open(image_path).convert("RGB")
@@ -240,6 +241,11 @@ def predict(
 
     for line_index, box in enumerate(line_boxes):
         line_crop = base_image.crop(box)
+        effective_max_new_tokens = int(
+            max_new_tokens
+            or getattr(model.generation_config, "max_new_tokens", 64)
+            or 64
+        )
 
         if debug:
             model_input_img, pad_meta = letterbox_pil(
@@ -256,7 +262,7 @@ def predict(
         with torch.no_grad():
             gen_out = model.generate(
                 pixel_values,
-                max_new_tokens=64,
+                max_new_tokens=effective_max_new_tokens,
                 num_beams=4,
                 early_stopping=True,
                 length_penalty=2.0,
@@ -363,6 +369,12 @@ def main():
         help="Embed the base64 preprocessed image directly in the output JSON",
     )
     parser.add_argument(
+        "--max_new_tokens",
+        type=int,
+        default=None,
+        help="Optional decode cap. Defaults to the saved model generation config if omitted.",
+    )
+    parser.add_argument(
         "--json_out",
         type=str,
         default="",
@@ -385,6 +397,7 @@ def main():
         debug=args.debug,
         multiline=args.multiline,
         return_base64=args.base64,
+        max_new_tokens=args.max_new_tokens,
     )
 
     print("\n==================================================")
