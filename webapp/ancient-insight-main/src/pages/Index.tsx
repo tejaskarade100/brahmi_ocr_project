@@ -1,28 +1,27 @@
 import { useState, useCallback } from "react";
-import InputModule from "@/components/InputModule";
-import OutputModule from "@/components/OutputModule";
+import DashboardLayout from "@/components/DashboardLayout";
+import LeftPanel from "@/components/LeftPanel";
+import CenterPanel from "@/components/CenterPanel";
+import RightPanel from "@/components/RightPanel";
 import type { OCRResponse } from "@/types/ocr";
 
 const Index = () => {
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isComplete, setIsComplete] = useState(false);
   const [ocrResult, setOcrResult] = useState<OCRResponse | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [activeLineIndex, setActiveLineIndex] = useState<number | null>(null);
 
   const handleReset = useCallback(() => {
     setIsProcessing(false);
-    setIsComplete(false);
     setOcrResult(null);
-    setErrorMessage(null);
+    setImageUrl(null);
     setActiveLineIndex(null);
   }, []);
 
-  const handleImageUploaded = useCallback(async (file: File, _url: string) => {
+  const handleImageUploaded = useCallback(async (file: File, url: string) => {
+    setImageUrl(url);
     setIsProcessing(true);
-    setIsComplete(false);
     setOcrResult(null);
-    setErrorMessage(null);
     setActiveLineIndex(null);
 
     try {
@@ -45,55 +44,37 @@ const Index = () => {
       setActiveLineIndex(firstLineIndex);
     } catch (error) {
       console.error("Error during OCR:", error);
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "OCR failed. Check whether the backend server is running.",
-      );
     } finally {
       setIsProcessing(false);
-      setIsComplete(true);
     }
   }, []);
 
   return (
-    <div className="app-shell min-h-screen w-full grid grid-cols-1 md:grid-cols-2 overflow-x-hidden min-w-0">
-      {/* Left: Input */}
-      <div className="panel-surface relative border-r border-border/70 flex flex-col min-w-0" style={{ minHeight: '100vh' }}>
-        <InputModule
-          onImageUploaded={handleImageUploaded}
-          isProcessing={isProcessing}
-          isComplete={isComplete}
-          ocrResult={ocrResult}
-          errorMessage={errorMessage}
-          activeLineIndex={activeLineIndex}
-          onActiveLineChange={setActiveLineIndex}
-          onClear={handleReset}
-        />
-      </div>
+    <DashboardLayout>
+      {/* Left Column: Acquisition & Settings */}
+      <LeftPanel 
+        onImageUploaded={handleImageUploaded}
+        isProcessing={isProcessing}
+        onClear={handleReset}
+      />
 
-      {/* Right: Output */}
-      <div className="panel-surface relative flex flex-col min-w-0" style={{ minHeight: '100vh' }}>
-        <OutputModule
-          isProcessing={isProcessing}
-          isComplete={isComplete}
-          ocrResult={ocrResult}
-          errorMessage={errorMessage}
-          activeLineIndex={activeLineIndex}
-          onActiveLineChange={setActiveLineIndex}
-        />
-      </div>
+      {/* Center Column: Visual Inspection */}
+      <CenterPanel 
+        imageUrl={imageUrl}
+        ocrResult={ocrResult}
+        isProcessing={isProcessing}
+        activeLineIndex={activeLineIndex}
+        onActiveLineChange={setActiveLineIndex}
+        onClear={handleReset}
+      />
 
-      {/* Top bar */}
-      <div className="fixed top-0 left-0 right-0 flex items-center justify-between px-8 lg:px-12 py-4 z-10 pointer-events-none backdrop-blur-[1px]">
-        <h1 className="font-display text-sm tracking-[0.3em] uppercase text-foreground/80 font-light">
-          Brahmi OCR
-        </h1>
-        <span className="text-[9px] tracking-[0.2em] uppercase text-muted-foreground/85 font-body">
-          AI Translation Engine
-        </span>
-      </div>
-    </div>
+      {/* Right Column: Deciphered Output & Logs */}
+      <RightPanel 
+        ocrResult={ocrResult}
+        isProcessing={isProcessing}
+        activeLineIndex={activeLineIndex}
+      />
+    </DashboardLayout>
   );
 };
 

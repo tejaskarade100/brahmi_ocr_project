@@ -61,6 +61,13 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        research: {
+          bg: "#F8FAFC",
+          gold: "#92763D",
+          cyan: "#0369A1",
+          "gold-dim": "rgba(146, 118, 61, 0.1)",
+          "cyan-dim": "rgba(3, 105, 161, 0.1)",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
