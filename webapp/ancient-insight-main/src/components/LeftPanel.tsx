@@ -32,13 +32,13 @@ const LeftPanel: React.FC<LeftPanelProps> = ({
   };
 
   return (
-    <div className="w-full md:w-96 border-r border-slate-200 flex flex-col custom-scrollbar overflow-y-auto bg-white">
+    <div className="w-full md:w-96 border-r border-slate-200 flex flex-col custom-scrollbar overflow-y-auto bg-slate-50/50">
       <div className="p-6 space-y-8">
         {/* Upload Section */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 text-research-gold">
-            <Upload size={16} />
-            <h2 className="text-sm font-bold uppercase tracking-widest">Image Acquisition</h2>
+        <div className="space-y-5">
+          <div className="flex items-center gap-3 text-research-gold pb-1 border-b border-slate-100">
+            <Upload size={22} className="text-amber-600" />
+            <h2 className="text-lg font-bold uppercase tracking-widest text-slate-900">Image Acquisition</h2>
           </div>
           
           <motion.div
@@ -46,11 +46,11 @@ const LeftPanel: React.FC<LeftPanelProps> = ({
             onDragLeave={() => setIsDragging(false)}
             onDrop={onDrop}
             onClick={() => fileInputRef.current?.click()}
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.99 }}
             className={cn(
-              "relative group cursor-pointer aspect-square rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-all duration-300",
-              isDragging ? "border-research-cyan bg-research-cyan/5" : "border-slate-200 hover:border-research-gold/50 bg-slate-50"
+              "relative group cursor-pointer aspect-square rounded-[2rem] border-2 border-dashed flex flex-col items-center justify-center transition-all duration-300 shadow-xl overflow-hidden",
+              isDragging 
+                ? "border-blue-500 bg-blue-50/80 ring-8 ring-blue-500/10" 
+                : "border-amber-200 bg-gradient-to-br from-white via-amber-50/30 to-slate-50"
             )}
           >
             <input 
@@ -61,16 +61,22 @@ const LeftPanel: React.FC<LeftPanelProps> = ({
               onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
             />
             
-            <div className="relative">
-              <Upload className={cn(
-                "w-12 h-12 transition-colors duration-300",
-                isDragging ? "text-research-cyan" : "text-slate-300 group-hover:text-research-gold"
-              )} strokeWidth={1} />
-            </div>
-            
-            <div className="mt-4 text-center">
-              <p className="text-xs font-semibold text-slate-600">Drag & Drop Inscription</p>
-              <p className="text-[10px] text-slate-400 mt-1">PNG, JPG up to 10MB</p>
+            <div className="relative z-10 flex flex-col items-center">
+              <div className="w-16 h-16 rounded-2xl bg-amber-500/10 flex items-center justify-center mb-6 transition-colors">
+                <Upload className={cn(
+                  "w-8 h-8 transition-all duration-300",
+                  isDragging ? "text-blue-600 scale-110" : "text-amber-600"
+                )} strokeWidth={2} />
+              </div>
+              
+              <div className="text-center px-4">
+                <p className="text-base font-bold text-slate-800 transition-colors">Drag & Drop Inscription</p>
+                <div className="flex items-center justify-center gap-2 mt-2">
+                  <span className="h-[1px] w-4 bg-slate-200" />
+                  <p className="text-[11px] text-slate-500 font-bold uppercase tracking-tighter">PNG, JPG up to 10MB</p>
+                  <span className="h-[1px] w-4 bg-slate-200" />
+                </div>
+              </div>
             </div>
           </motion.div>
         </div>
@@ -78,18 +84,18 @@ const LeftPanel: React.FC<LeftPanelProps> = ({
         {/* Preprocessing Controls */}
         <div className="space-y-4">
           <div className="flex items-center gap-2 text-research-cyan">
-            <Sliders size={16} />
-            <h2 className="text-sm font-bold uppercase tracking-widest">Image Controls</h2>
+            <Sliders size={18} />
+            <h2 className="text-sm font-bold uppercase tracking-widest text-slate-800">Image Controls</h2>
           </div>
           
-          <div className="bg-slate-50 rounded-xl p-5 border border-slate-100 space-y-5">
-            <ControlSlider label="Threshold" defaultValue={65} />
-            <ControlSlider label="Contrast" defaultValue={80} />
-            <ControlSlider label="Denoise" defaultValue={30} />
-            <div className="flex items-center justify-between pt-2">
-              <span className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Auto-Enhance</span>
-              <div className="w-8 h-4 bg-slate-200 rounded-full relative cursor-pointer">
-                <div className="absolute right-1 top-1 w-2 h-2 bg-research-cyan rounded-full" />
+          <div className="bg-white rounded-xl p-6 border border-slate-200 space-y-6 shadow-sm">
+            <ControlSlider label="Threshold" defaultValue={65} accent="blue" />
+            <ControlSlider label="Contrast" defaultValue={80} accent="emerald" />
+            <ControlSlider label="Denoise" defaultValue={30} accent="violet" />
+            <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+              <span className="text-[11px] uppercase tracking-wider text-slate-600 font-bold">Auto-Enhance</span>
+              <div className="w-8 h-4 bg-slate-200 rounded-full relative cursor-pointer shadow-inner">
+                <div className="absolute right-1 top-1 w-2 h-2 bg-research-cyan rounded-full shadow-sm" />
               </div>
             </div>
           </div>
@@ -99,17 +105,26 @@ const LeftPanel: React.FC<LeftPanelProps> = ({
   );
 };
 
-const ControlSlider = ({ label, defaultValue }: { label: string, defaultValue: number }) => (
-  <div className="space-y-2">
-    <div className="flex justify-between text-[10px] uppercase tracking-wider">
-      <span className="text-white/60">{label}</span>
-      <span className="text-research-cyan">{defaultValue}%</span>
+const ControlSlider = ({ label, defaultValue, accent = "blue" }: { label: string, defaultValue: number, accent?: string }) => {
+  const colors: Record<string, string> = {
+    blue: "text-blue-600 bg-blue-500",
+    emerald: "text-emerald-600 bg-emerald-500",
+    violet: "text-violet-600 bg-violet-500",
+  };
+  const color = colors[accent];
+
+  return (
+    <div className="space-y-2">
+      <div className="flex justify-between text-[11px] uppercase tracking-wider font-bold">
+        <span className="text-slate-500">{label}</span>
+        <span className={color.split(" ")[0]}>{defaultValue}%</span>
+      </div>
+      <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden shadow-inner">
+        <div className={cn("h-full rounded-full", color.split(" ")[1])} style={{ width: `${defaultValue}%` }} />
+      </div>
     </div>
-    <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-      <div className="h-full bg-research-cyan/50" style={{ width: `${defaultValue}%` }} />
-    </div>
-  </div>
-);
+  );
+};
 
 const ModelOption = ({ label, active = false }: { label: string, active?: boolean }) => (
   <div className={cn(

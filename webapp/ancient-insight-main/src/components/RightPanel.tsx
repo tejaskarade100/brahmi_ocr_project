@@ -50,49 +50,57 @@ const RightPanel: React.FC<RightPanelProps> = ({
   }, [logs]);
 
   return (
-    <div className="w-full md:w-96 border-l border-slate-200 flex flex-col custom-scrollbar overflow-y-auto bg-white">
+    <div className="w-full md:w-[420px] border-l border-slate-200 flex flex-col custom-scrollbar overflow-y-auto bg-slate-50/50">
       <div className="p-6 space-y-8">
         {/* Results Section */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
+        <div className="space-y-6">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-200">
             <div className="flex items-center gap-2 text-research-gold">
-              <BrainCircuit size={16} />
-              <h2 className="text-sm font-bold uppercase tracking-widest">Transcription Results</h2>
+              <BrainCircuit size={20} />
+              <h2 className="text-lg font-bold uppercase tracking-widest text-slate-800">Transcription Results</h2>
             </div>
             {ocrResult && (
-              <div className="flex items-center gap-2 text-[10px] text-research-cyan bg-research-cyan/5 px-2 py-0.5 rounded-full border border-research-cyan/10 font-bold">
-                <BarChart3 size={12} />
+              <div className="flex items-center gap-2 text-[11px] text-research-cyan bg-research-cyan/10 px-2.5 py-1 rounded-md border border-research-cyan/20 font-bold shadow-sm">
+                <BarChart3 size={14} />
                 {(0.95 * 100).toFixed(1)}% CONFIDENCE
               </div>
             )}
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-5">
             <ResultCard 
               title="Brahmi (Original Script)" 
               content={ocrResult?.brahmi_text || "---"} 
-              font="font-mono text-lg"
+              font="font-mono text-3xl"
+              accent="blue"
               loading={isProcessing}
             />
             <ResultCard 
               title="Devanagari" 
               content={ocrResult?.devanagari_text || "---"} 
+              font="text-xl"
+              accent="emerald"
               loading={isProcessing}
             />
             <ResultCard 
               title="Latin Transliteration" 
               content={ocrResult?.latin_text || "---"} 
+              font="text-lg"
+              accent="violet"
               loading={isProcessing}
             />
             <ResultCard 
               title="English Translation" 
               content={ocrResult?.english_translation || "---"} 
-              accent="gold"
+              font="text-lg"
+              accent="amber"
               loading={isProcessing}
             />
             <ResultCard 
               title="Hindi Translation" 
               content={ocrResult?.hindi_translation || "---"} 
+              font="text-lg"
+              accent="rose"
               loading={isProcessing}
             />
           </div>
@@ -102,44 +110,54 @@ const RightPanel: React.FC<RightPanelProps> = ({
   );
 };
 
-const ResultCard = ({ title, content, font, accent = "cyan", loading = false }: { title: string, content: string, font?: string, accent?: "cyan" | "gold", loading?: boolean }) => (
-  <div className={cn(
-    "p-5 rounded-xl border transition-all duration-300",
-    accent === "gold" ? "bg-amber-50/50 border-amber-100" : "bg-slate-50 border-slate-100"
-  )}>
-    <div className="flex justify-between items-center mb-2">
-      <span className={cn(
-        "text-[9px] uppercase tracking-widest font-bold",
-        accent === "gold" ? "text-research-gold" : "text-slate-400"
-      )}>{title}</span>
-      {accent === "gold" && <Globe2 size={12} className="text-research-gold/30" />}
+const ResultCard = ({ title, content, font, accent = "slate", loading = false }: { title: string, content: string, font?: string, accent?: "slate" | "amber" | "blue" | "emerald" | "violet" | "rose", loading?: boolean }) => {
+  const accentStyles = {
+    slate: "bg-white border-slate-200 shadow-slate-200/50 text-slate-900 label-slate-500",
+    amber: "bg-amber-50/80 border-amber-200 shadow-amber-900/5 text-amber-950 label-amber-700",
+    blue: "bg-blue-50/80 border-blue-200 shadow-blue-900/5 text-blue-950 label-blue-700",
+    emerald: "bg-emerald-50/80 border-emerald-200 shadow-emerald-900/5 text-emerald-950 label-emerald-700",
+    violet: "bg-violet-50/80 border-violet-200 shadow-violet-900/5 text-violet-950 label-violet-700",
+    rose: "bg-rose-50/80 border-rose-200 shadow-rose-900/5 text-rose-950 label-rose-700",
+  };
+
+  const style = accentStyles[accent] || accentStyles.slate;
+  const bgBorderShadow = style.split(" text-")[0];
+  const textColor = "text-" + style.split(" text-")[1].split(" label-")[0];
+  const labelColor = "text-" + style.split(" label-")[1];
+
+  return (
+    <div className={cn("p-6 rounded-xl border transition-all duration-300 shadow-sm", bgBorderShadow)}>
+      <div className="flex justify-between items-center mb-3">
+        <span className={cn("text-[10px] uppercase tracking-widest font-bold", labelColor)}>{title}</span>
+        {accent !== "slate" && <Globe2 size={14} className={cn("opacity-40", labelColor)} />}
+      </div>
+      <div className="relative">
+        <AnimatePresence mode="wait">
+          {loading ? (
+            <motion.div 
+              key="loading"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="space-y-3"
+            >
+              <div className="h-5 bg-black/5 rounded animate-pulse w-full" />
+              <div className="h-5 bg-black/5 rounded animate-pulse w-2/3" />
+            </motion.div>
+          ) : (
+            <motion.p 
+              key="content"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className={cn("leading-relaxed font-semibold tracking-wide", font || "text-base", textColor)}
+            >
+              {content}
+            </motion.p>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
-    <div className="relative">
-      <AnimatePresence mode="wait">
-        {loading ? (
-          <motion.div 
-            key="loading"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="space-y-2"
-          >
-            <div className="h-4 bg-slate-200/50 rounded animate-pulse w-full" />
-            <div className="h-4 bg-slate-200/50 rounded animate-pulse w-2/3" />
-          </motion.div>
-        ) : (
-          <motion.p 
-            key="content"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className={cn("text-sm leading-relaxed text-slate-700 font-medium", font)}
-          >
-            {content}
-          </motion.p>
-        )}
-      </AnimatePresence>
-    </div>
-  </div>
-);
+  );
+};
 
 export default RightPanel;

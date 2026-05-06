@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Maximize2, Minimize2, Layers, RefreshCw, ZoomIn, ZoomOut } from "lucide-react";
+import { ZoomIn, ZoomOut, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { OCRResponse } from "@/types/ocr";
 
@@ -29,14 +29,17 @@ const CenterPanel: React.FC<CenterPanelProps> = ({
   };
 
   return (
-    <div className="flex-1 relative flex flex-col bg-slate-100/50">
+    <div className="flex-1 relative flex flex-col bg-slate-50/80">
+      {/* Background Gradient for UI Depth */}
+      <div className="absolute inset-0 bg-gradient-to-b from-white/40 to-slate-100/40 pointer-events-none" />
+
       {/* Toolbar */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-md rounded-full border border-slate-200 shadow-sm">
-        <ToolbarButton icon={<ZoomIn size={14} />} onClick={() => setZoom(z => Math.min(z + 0.2, 3))} />
-        <ToolbarButton icon={<ZoomOut size={14} />} onClick={() => setZoom(z => Math.max(z - 0.2, 0.5))} />
-        <div className="w-[1px] h-4 bg-slate-200 mx-1" />
+      <div className="absolute top-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 px-5 py-2.5 bg-white/95 backdrop-blur-md rounded-full border border-slate-200 shadow-sm transition-all hover:shadow-md">
+        <ToolbarButton icon={<ZoomIn size={16} />} onClick={() => setZoom(z => Math.min(z + 0.2, 3))} />
+        <ToolbarButton icon={<ZoomOut size={16} />} onClick={() => setZoom(z => Math.max(z - 0.2, 0.5))} />
+        <div className="w-[1px] h-5 bg-slate-200 mx-2" />
         <ToolbarButton 
-          icon={<RefreshCw size={14} />} 
+          icon={<RefreshCw size={16} />} 
           onClick={onClear} 
           label="Reset"
         />
@@ -45,7 +48,7 @@ const CenterPanel: React.FC<CenterPanelProps> = ({
       {/* Main Viewport */}
       <div 
         ref={containerRef}
-        className="flex-1 relative overflow-hidden flex items-center justify-center"
+        className="flex-1 relative overflow-hidden flex items-center justify-center p-4 z-10"
       >
         <AnimatePresence mode="wait">
           {!imageUrl ? (
@@ -53,19 +56,24 @@ const CenterPanel: React.FC<CenterPanelProps> = ({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="text-center space-y-4"
+              className="absolute inset-0 flex flex-col items-center justify-center opacity-100 pointer-events-none select-none overflow-hidden"
             >
-              <div className="relative inline-block">
-                <motion.div 
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                  className="w-32 h-32 rounded-full border border-dashed border-slate-300"
-                />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-2 h-2 bg-research-gold rounded-full" />
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-8 font-mono text-5xl md:text-7xl lg:text-8xl text-slate-900/10 whitespace-nowrap z-0">
+                <div className="flex gap-6">𑀅 𑀆 𑀇 𑀈 𑀉 𑀊 𑀏 𑀐 𑀑 𑀒</div>
+                <div className="flex gap-6">𑀓 𑀔 𑀕 𑀖 𑀗 𑀘 𑀙 𑀚 𑀛 𑀜</div>
+                <div className="flex gap-6">𑀝 𑀞 𑀟 𑀠 𑀡 𑀢 𑀣 𑀤 𑀥 𑀦</div>
+                <div className="flex gap-6">𑀧 𑀨 𑀩 𑀪 𑀫 𑀬 𑀭 𑀮 𑀯</div>
+                <div className="flex gap-6">𑀰 𑀱 𑀲 𑀳 𑀴 𑀵</div>
+              </div>
+              
+              <div className="absolute inset-0 z-10 flex items-center justify-center">
+                <div className="bg-gradient-to-b from-white to-slate-100 px-8 py-4 rounded-2xl border-2 border-white shadow-[0_20px_40px_-15px_rgba(0,0,0,0.15),0_0_0_1px_rgba(0,0,0,0.05)] transform transition-transform">
+                  <div className="flex items-center gap-3">
+                    <div className="w-2.5 h-2.5 bg-research-gold rounded-full animate-pulse shadow-[0_0_10px_rgba(198,166,100,0.5)]" />
+                    <p className="text-sm uppercase tracking-[0.3em] text-slate-700 font-extrabold drop-shadow-sm">Waiting for Data Input</p>
+                  </div>
                 </div>
               </div>
-              <p className="text-xs uppercase tracking-[0.4em] text-slate-400 font-bold">Waiting for Data Input</p>
             </motion.div>
           ) : (
             <motion.div 
@@ -78,12 +86,12 @@ const CenterPanel: React.FC<CenterPanelProps> = ({
               <img 
                 src={imageUrl} 
                 alt="Original" 
-                className="max-w-[90%] max-h-[90%] object-contain shadow-2xl rounded-lg border border-white"
+                className="max-w-full max-h-full object-contain shadow-xl rounded-xl border-4 border-white bg-white"
               />
 
               {/* Animated Scan Line */}
               {isProcessing && (
-                <div className="absolute inset-0 pointer-events-none">
+                <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-xl">
                   <div className="scan-line" />
                 </div>
               )}
@@ -93,15 +101,15 @@ const CenterPanel: React.FC<CenterPanelProps> = ({
       </div>
 
       {/* Bottom Info Bar */}
-      <div className="p-4 flex items-center justify-between border-t border-slate-200 bg-white">
-        <div className="flex gap-4">
+      <div className="relative z-20 p-5 flex items-center justify-between border-t border-slate-200 bg-white/95 backdrop-blur-sm shadow-[0_-4px_20px_rgba(0,0,0,0.02)]">
+        <div className="flex gap-6">
           <InfoMetric label="IMAGE-RESOLUTION" value="3400 x 1200 PX" />
           <InfoMetric label="COLOR-DEPTH" value="16-BIT GRAYSCALE" />
         </div>
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 pl-4 border-l border-slate-100">
-            <div className={cn("w-2 h-2 rounded-full", isProcessing ? "bg-research-cyan animate-pulse" : "bg-green-500")} />
-            <span className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold">
+          <div className="flex items-center gap-3 pl-5 border-l border-slate-200">
+            <div className={cn("w-2.5 h-2.5 rounded-full shadow-sm", isProcessing ? "bg-research-cyan animate-pulse shadow-research-cyan/40" : "bg-emerald-500 shadow-emerald-500/40")} />
+            <span className="text-[11px] uppercase tracking-[0.2em] text-slate-500 font-bold">
               {isProcessing ? "Processing..." : "Ready"}
             </span>
           </div>
@@ -115,19 +123,19 @@ const ToolbarButton = ({ icon, onClick, active = false, label }: { icon: React.R
   <button 
     onClick={onClick}
     className={cn(
-      "flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200",
-      active ? "text-research-cyan bg-research-cyan/5 border border-research-cyan/20" : "text-slate-500 hover:bg-slate-50"
+      "flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 font-medium",
+      active ? "text-research-cyan bg-research-cyan/10 border border-research-cyan/20" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
     )}
   >
     {icon}
-    {label && <span className="text-[10px] uppercase font-bold tracking-widest">{label}</span>}
+    {label && <span className="text-[11px] uppercase font-bold tracking-widest">{label}</span>}
   </button>
 );
 
 const InfoMetric = ({ label, value }: { label: string, value: string }) => (
-  <div className="flex flex-col">
-    <span className="text-[8px] text-slate-400 tracking-widest font-bold">{label}</span>
-    <span className="text-[10px] text-slate-600 font-mono font-bold">{value}</span>
+  <div className="flex flex-col gap-1">
+    <span className="text-[9px] text-slate-400 tracking-[0.15em] font-bold">{label}</span>
+    <span className="text-[11px] text-slate-700 font-mono font-bold">{value}</span>
   </div>
 );
 
